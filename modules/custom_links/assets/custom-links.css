@@ -1,0 +1,12 @@
+#custom-links-list .dd3-content {
+    padding-left: 10px;
+}
+#custom-links-list .dd3-content .dd-icon {
+    display: inline-block;
+    width: 25px;
+    text-align: center;
+}
+.link-headings {
+    text-transform: uppercase;
+    font-weight: bold;
+}

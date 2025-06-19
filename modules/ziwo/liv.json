@@ -1,0 +1,24 @@
+{
+  "result": true,
+  "content": {
+    "callInfo": {},
+    "queueInfo": {
+      "callID": "3128d6fb-7345-4015-ab5e-cbaba1f79a1c",
+      "didCalled": "+212636274706",
+      "callerPosition": "agent-0013",
+      "callerID": "0000000000",
+      "callerName": "",
+      "calleeID": "+212636274706",
+      "calleeName": "Outbound Call",
+      "calleePosition": "",
+      "createdEPOCH": "1739963788",
+      "calleeDirection": "outbound",
+      "callState": "active",
+      "calleeCallState": "active",
+      "direction": "outbound",
+      "channelBridgeEPOCH": "1739963788",
+      "originalCallerIdNumber": "0000000000"
+    }
+  },
+  "info": {}
+}

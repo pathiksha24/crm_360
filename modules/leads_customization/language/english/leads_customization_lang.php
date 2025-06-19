@@ -1,0 +1,20 @@
+<?php
+$lang['leads_customization'] = 'Leads Customization';
+$lang['closed_leads_report'] = 'Closed Leads Report';
+$lang['languages'] = 'Languages';
+$lang['new_language'] = 'New Language';
+$lang['edit_languages'] = 'Edit Language';
+$lang['edit_services'] = 'Edit Service';
+$lang['leads_service'] = 'Service';
+$lang['lead_service'] = 'Lead Service';
+$lang['lead_language'] = 'Lead Language';
+$lang['leads_language'] = 'Language';
+$lang['lead_add_edit_service'] = 'Service';
+$lang['lead_add_edit_language'] = 'Language';
+$lang['lead_add_edit_whatsapp_number'] = 'Whatsapp Number';
+$lang['whatsapp_number'] = 'Whatsapp Number';
+$lang['is_referenced']        = 'The ID of the %s is already using.';
+$lang['whatsapp_number_exists']                        = 'Whatsapp Number already exists';
+$lang['has_notes']                        = 'Has Notes';
+$lang['leads_unassigned_settings']                        = 'Unassigned Leads Permissions';
+$lang['leads_unassigned_admins']                        = 'Who Can See Unassigned Leads';

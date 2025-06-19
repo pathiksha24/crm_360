@@ -1,0 +1,36 @@
+.task-view-collapse {
+    top: 1rem;
+    right: 1rem;
+}
+
+.task-view-collapse:not(.collapsed) i.fa-chevron-left {
+    display: none;
+}
+
+.task-view-collapse.collapsed i.fa-chevron-right {
+    display: none;
+}
+
+.task-single-col-right {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    .task-view-collapse {
+        display: none;
+    }
+}
+
+@media (max-width: 991px) {
+    .task-view-collapse {
+        display: none;
+    }
+
+    .task-single-col-right {
+        display: block;
+    }
+}
+
+.tc-content.task-comment.active {
+    background-color: #fffb006b;
+}

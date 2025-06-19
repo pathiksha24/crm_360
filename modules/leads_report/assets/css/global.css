@@ -1,0 +1,9 @@
+/*.table-leads_report > tbody > tr > td:nth-child(1){
+	font-weight: bold;
+}*/
+.table-leads_report > tbody > tr > td{
+	text-align: center;
+}
+.table-leads_report > thead > tr > th{
+	text-align: center;
+}

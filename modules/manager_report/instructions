@@ -1,0 +1,3 @@
+add this hook in member.php
+under language
+<?php hooks()->do_action('staff_render_managers'); ?>
