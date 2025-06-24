@@ -318,9 +318,14 @@ class Leads extends REST_Controller {
 public function data_post()
 {
     
-    $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]');
-    $this->form_validation->set_rules('source', 'Source', 'trim|required');
-    $this->form_validation->set_rules('status', 'Status', 'trim|required');
+
+    $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]', array('is_unique' => 'This %s already exists please enter another Lead Name'));
+    $this->form_validation->set_rules('source', 'Source', 'trim|required', array('is_unique' => 'This %s already exists please enter another Lead source'));
+    $this->form_validation->set_rules('status', 'Status', 'trim|required', array('is_unique' => 'This %s already exists please enter another Status'));
+
+    // $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]');
+    // $this->form_validation->set_rules('source', 'Source', 'trim|required');
+    // $this->form_validation->set_rules('status', 'Status', 'trim|required');
 
     if ($this->form_validation->run() == FALSE) {
         // form validation error
