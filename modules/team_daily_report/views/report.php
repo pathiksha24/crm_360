@@ -106,6 +106,19 @@ init_head(); ?>
 </div>
 
 <?php init_tail(); ?>
+<!-- TEAM DAILY REPORT -EXPORT BTN ONLY FOR ADMIN -->
+<script>
+    $(document).ready(function () {
+        var isAdmin = <?php echo is_admin() ? 'true' : 'false'; ?>;
+        if (!isAdmin) {
+            // Wait for the DataTable to fully render
+            setTimeout(function () {
+                // Hide the export button(s)
+                $('.buttons-collection').hide(); // or use .btn-default-dt-options
+            }, 500); // Adjust delay as needed
+        }
+    });
+</script>
 <script>
 
     $(function() {
