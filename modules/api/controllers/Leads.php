@@ -224,95 +224,221 @@ class Leads extends REST_Controller {
      *     }
      * 
      */
-    public function data_post()
-    {
-        // \modules\api\core\Apiinit::check_url('api');
-        // form validation
-        $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]', array('is_unique' => 'This %s already exists please enter another Lead Name'));
-        $this->form_validation->set_rules('source', 'Source', 'trim|required', array('is_unique' => 'This %s already exists please enter another Lead source'));
-        $this->form_validation->set_rules('status', 'Status', 'trim|required', array('is_unique' => 'This %s already exists please enter another Status'));
-        if ($this->form_validation->run() == FALSE)
-        {
-            // form validation error
+//     public function data_post()
+//     {
+//         // \modules\api\core\Apiinit::check_url('api');
+//         // form validation
+//         $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]', array('is_unique' => 'This %s already exists please enter another Lead Name'));
+//         $this->form_validation->set_rules('source', 'Source', 'trim|required', array('is_unique' => 'This %s already exists please enter another Lead source'));
+//         $this->form_validation->set_rules('status', 'Status', 'trim|required', array('is_unique' => 'This %s already exists please enter another Status'));
+//         if ($this->form_validation->run() == FALSE)
+//         {
+//             // form validation error
+//             $message = array(
+//                 'status' => FALSE,
+//                 'error' => $this->form_validation->error_array(),
+//                 'message' => validation_errors() 
+//             );
+//             file_put_contents('error_404.json', validation_errors());
+
+//             $this->response($message, REST_Controller::HTTP_NOT_FOUND);
+//         }
+//         else
+//         {
+//             $service = $this->Api_model->value($this->input->post('service', TRUE));
+//             if ($service == '' || $service == null){
+//                 $service = 'Not Available';
+//             }
+//             $insert_data = [
+//                 'name' => $this->input->post('name', TRUE),
+//                 'source' => $this->input->post('source', TRUE),
+//                 'status' => $this->input->post('status', TRUE),
+                
+//                 'assigned' => $this->Api_model->value($this->input->post('assigned', TRUE)),
+//                 'tags' => $this->Api_model->value($this->input->post('tags', TRUE)),
+//                 'service' => $this->Api_model->matchService($service),
+//                 'language' => $this->Api_model->matchLanguage($this->Api_model->value($this->input->post('language', TRUE))),
+//                 'title' => $this->Api_model->value($this->input->post('title', TRUE)),
+//                 'email' => $this->Api_model->value($this->input->post('email', TRUE)),
+//                 'website' => $this->Api_model->value($this->input->post('website', TRUE)),
+//                 'phonenumber' => $this->Api_model->value($this->input->post('phonenumber', TRUE)),
+//                 'company' => $this->Api_model->value($this->input->post('company', TRUE)),
+//                 'address' => $this->Api_model->value($this->input->post('address', TRUE)),
+//                 'city' => $this->Api_model->value($this->input->post('city', TRUE)),
+//                 'zip' => '',
+//                 'state' => $this->Api_model->value($this->input->post('state', TRUE)),
+//                 'default_language' => $this->Api_model->value($this->input->post('default_language', TRUE)),
+//                 'description' => $this->Api_model->value($this->input->post('description', TRUE)),
+//                 'custom_contact_date' => $this->Api_model->value($this->input->post('custom_contact_date', TRUE)),
+//                 'is_public' => $this->Api_model->value($this->input->post('is_public', TRUE)),
+//                 'contacted_today' => $this->Api_model->value($this->input->post('contacted_today', TRUE))
+//                 ];
+//                 if (!empty($this->input->post('custom_fields', TRUE))) {
+//                     $insert_data['custom_fields'] = $this->Api_model->value($this->input->post('custom_fields', TRUE));
+//                 }
+
+//                 if ($insert_data['tags'] == 'business_set_up_2025'){
+//                     $insert_data['email'] = $insert_data['description'];
+//                     $insert_data['description'] = 'Quickplus Business Setup Services';
+//                     $insert_data['service'] = 127;
+//                     $insert_data['language'] = 2;
+//                     $insert_data['tags'] = '';
+//                 }
+// //            file_put_contents('insert_data.json', json_encode($insert_data));
+// //            die();
+//             // insert data
+//             $this->load->model('leads_model');
+//             $output = $this->leads_model->add($insert_data);
+
+
+//             if($output > 0 && !empty($output)){
+//                 // success
+//                 $this->handle_lead_attachments_array($output);
+//                 $message = array(
+//                 'status' => TRUE,
+//                 'message' => 'Lead add successful.'
+//                 );
+//                 file_put_contents('lead_added.json', json_encode($insert_data));
+
+//                 $this->response($message, REST_Controller::HTTP_OK);
+//             }else{
+//                 // error
+//                 $message = array(
+//                 'status' => FALSE,
+//                 'message' => 'Lead add fail.'
+//                 );
+//                 file_put_contents('lead_not_added.json', $insert_data);
+
+//                 $this->response($message, REST_Controller::HTTP_NOT_FOUND);
+//             }
+//         }
+//     }
+
+
+public function data_post()
+{
+    
+    $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]');
+    $this->form_validation->set_rules('source', 'Source', 'trim|required');
+    $this->form_validation->set_rules('status', 'Status', 'trim|required');
+
+    if ($this->form_validation->run() == FALSE) {
+        // form validation error
+        $message = array(
+            'status' => FALSE,
+            'error' => $this->form_validation->error_array(),
+            'message' => validation_errors() 
+        );
+        file_put_contents('error_404.json', validation_errors());
+
+        $this->response($message, REST_Controller::HTTP_NOT_FOUND);
+    } else {
+        $service = $this->Api_model->value($this->input->post('service', TRUE));
+        if ($service == '' || $service == null) {
+            $service = 'Not Available';
+        }
+
+        $insert_data = [
+            'name' => $this->input->post('name', TRUE),
+            'source' => $this->input->post('source', TRUE),
+            'status' => $this->input->post('status', TRUE),
+            'assigned' => $this->Api_model->value($this->input->post('assigned', TRUE)),
+            'tags' => $this->Api_model->value($this->input->post('tags', TRUE)),
+            'service' => $this->Api_model->matchService($service),
+            'language' => $this->Api_model->matchLanguage($this->Api_model->value($this->input->post('language', TRUE))),
+            'title' => $this->Api_model->value($this->input->post('title', TRUE)),
+            'email' => $this->Api_model->value($this->input->post('email', TRUE)),
+            'website' => $this->Api_model->value($this->input->post('website', TRUE)),
+            'phonenumber' => $this->Api_model->value($this->input->post('phonenumber', TRUE)),
+            'company' => $this->Api_model->value($this->input->post('company', TRUE)),
+            'address' => $this->Api_model->value($this->input->post('address', TRUE)),
+            'city' => $this->Api_model->value($this->input->post('city', TRUE)),
+            'zip' => '',
+            'state' => $this->Api_model->value($this->input->post('state', TRUE)),
+            'default_language' => $this->Api_model->value($this->input->post('default_language', TRUE)),
+            'description' => $this->Api_model->value($this->input->post('description', TRUE)),
+            'custom_contact_date' => $this->Api_model->value($this->input->post('custom_contact_date', TRUE)),
+            'is_public' => $this->Api_model->value($this->input->post('is_public', TRUE)),
+            'contacted_today' => $this->Api_model->value($this->input->post('contacted_today', TRUE))
+        ];
+
+        if (!empty($this->input->post('custom_fields', TRUE))) {
+            $insert_data['custom_fields'] = $this->Api_model->value($this->input->post('custom_fields', TRUE));
+        }
+
+        if ($insert_data['tags'] == 'business_set_up_2025') {
+            $insert_data['email'] = $insert_data['description'];
+            $insert_data['description'] = 'Quickplus Business Setup Services';
+            $insert_data['service'] = 127;
+            $insert_data['language'] = 2;
+            $insert_data['tags'] = '';
+        }
+
+
+        $phonenumber = $this->Api_model->value($this->input->post('phonenumber', TRUE));
+ 
+            // Normalize: remove +, spaces, leading 00, etc.
+            $normalized_phone = preg_replace('/[^0-9]/', '', $phonenumber); // keep only digits
+            $normalized_phone = ltrim($normalized_phone, '0'); // remove leading 0s
+            $normalized_phone = ltrim($normalized_phone, '00'); // also remove international prefixes
+            
+            if (!empty($normalized_phone)) {
+                // Now fetch all leads and compare normalized versions
+                $leads = $this->db->select('phonenumber')->from(db_prefix() . 'leads')->get()->result();
+                foreach ($leads as $lead) {
+                    $existing = preg_replace('/[^0-9]/', '', $lead->phonenumber);
+                    $existing = ltrim($existing, '0');
+                    $existing = ltrim($existing, '00');
+                    if ($normalized_phone === $existing) {
+                        $this->response([
+                            'status' => FALSE,
+                            'message' => 'Phone number already exists.',
+                            'error' => ['phonenumber' => 'Phone number already exists.']
+                        ], REST_Controller::HTTP_CONFLICT);
+                        return;
+                    }
+                }
+            }
+
+        
+        
+            // insert data
+        $this->load->model('leads_model');
+        $output = $this->leads_model->add($insert_data);
+
+        if ($output > 0 && !empty($output)) {
+            // success
+            $this->handle_lead_attachments_array($output);
+            $message = array(
+                'status' => TRUE,
+                'message' => 'Lead add successful.'
+            );
+            file_put_contents('lead_added.json', json_encode($insert_data));
+
+            $this->response($message, REST_Controller::HTTP_OK);
+        } else {
+            // error
             $message = array(
                 'status' => FALSE,
-                'error' => $this->form_validation->error_array(),
-                'message' => validation_errors() 
+                'message' => 'Lead add fail.'
             );
-            file_put_contents('error_404.json', validation_errors());
+            file_put_contents('lead_not_added.json', json_encode($insert_data));
 
             $this->response($message, REST_Controller::HTTP_NOT_FOUND);
         }
-        else
-        {
-            $service = $this->Api_model->value($this->input->post('service', TRUE));
-            if ($service == '' || $service == null){
-                $service = 'Not Available';
-            }
-            $insert_data = [
-                'name' => $this->input->post('name', TRUE),
-                'source' => $this->input->post('source', TRUE),
-                'status' => $this->input->post('status', TRUE),
-                
-                'assigned' => $this->Api_model->value($this->input->post('assigned', TRUE)),
-                'tags' => $this->Api_model->value($this->input->post('tags', TRUE)),
-                'service' => $this->Api_model->matchService($service),
-                'language' => $this->Api_model->matchLanguage($this->Api_model->value($this->input->post('language', TRUE))),
-                'title' => $this->Api_model->value($this->input->post('title', TRUE)),
-                'email' => $this->Api_model->value($this->input->post('email', TRUE)),
-                'website' => $this->Api_model->value($this->input->post('website', TRUE)),
-                'phonenumber' => $this->Api_model->value($this->input->post('phonenumber', TRUE)),
-                'company' => $this->Api_model->value($this->input->post('company', TRUE)),
-                'address' => $this->Api_model->value($this->input->post('address', TRUE)),
-                'city' => $this->Api_model->value($this->input->post('city', TRUE)),
-                'zip' => '',
-                'state' => $this->Api_model->value($this->input->post('state', TRUE)),
-                'default_language' => $this->Api_model->value($this->input->post('default_language', TRUE)),
-                'description' => $this->Api_model->value($this->input->post('description', TRUE)),
-                'custom_contact_date' => $this->Api_model->value($this->input->post('custom_contact_date', TRUE)),
-                'is_public' => $this->Api_model->value($this->input->post('is_public', TRUE)),
-                'contacted_today' => $this->Api_model->value($this->input->post('contacted_today', TRUE))
-                ];
-                if (!empty($this->input->post('custom_fields', TRUE))) {
-                    $insert_data['custom_fields'] = $this->Api_model->value($this->input->post('custom_fields', TRUE));
-                }
-
-                if ($insert_data['tags'] == 'business_set_up_2025'){
-                    $insert_data['email'] = $insert_data['description'];
-                    $insert_data['description'] = 'Quickplus Business Setup Services';
-                    $insert_data['service'] = 127;
-                    $insert_data['language'] = 2;
-                    $insert_data['tags'] = '';
-                }
-//            file_put_contents('insert_data.json', json_encode($insert_data));
-//            die();
-            // insert data
-            $this->load->model('leads_model');
-            $output = $this->leads_model->add($insert_data);
-
-
-            if($output > 0 && !empty($output)){
-                // success
-                $this->handle_lead_attachments_array($output);
-                $message = array(
-                'status' => TRUE,
-                'message' => 'Lead add successful.'
-                );
-                file_put_contents('lead_added.json', json_encode($insert_data));
-
-                $this->response($message, REST_Controller::HTTP_OK);
-            }else{
-                // error
-                $message = array(
-                'status' => FALSE,
-                'message' => 'Lead add fail.'
-                );
-                file_put_contents('lead_not_added.json', $insert_data);
-
-                $this->response($message, REST_Controller::HTTP_NOT_FOUND);
-            }
-        }
     }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
     /**
