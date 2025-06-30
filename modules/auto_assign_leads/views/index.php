@@ -14,9 +14,34 @@ init_head(); ?>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-right">
                                     <li><a href="#" id="newFilterMenuItem">New Filter</a></li>
-                                    <!--<li role="separator" class="divider"></li>-->
-                                    <!--<li class="dropdown-header">Saved Filters</li>-->
-                                    <!--<li><a href="#">No saved filters, get started by creating a new filter.</a></li>-->
+                                    <li role="separator" class="divider"></li>
+                                    <li class="dropdown-header">Saved Filters</li>
+                                      <?php 
+                                $limit = 5; // Number of items to show initially
+                                $total = count($saved_assignments);
+                                ?>
+
+                                <?php if ($total > 0) : ?>
+                                    <?php foreach ($saved_assignments as $index => $assignment) : ?>
+                                        <li class="<?= $index >= $limit ? 'extra-filter' : '' ?>" style="<?= $index >= $limit ? 'display:none;' : '' ?>">
+                                            <a href="#" class="saved-filter-item" data-service-id="<?= $assignment['serviceid'] ?>">
+                                                <?= htmlspecialchars($assignment['service_name']) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+
+                                    <?php if ($total > $limit) : ?>
+                                        <li>
+                                            <button type="button" id="showMoreFilters" class="btn btn-link">More...</button>
+                                        </li>
+                                    <?php endif; ?>
+
+                                <?php else : ?>
+                                    <li>
+                                        <a href="#">No saved filters, get started by creating a new filter.</a>
+                                    </li>
+                                <?php endif; ?>
+
                                 </ul>
                             </div>
                         </div>
@@ -367,4 +392,17 @@ $('#service_ids').on('change', function () {
 
 
  
+</script>
+
+<!-- more button for saved filters -->
+<script>
+jQuery(document).ready(function($) {
+    $('#showMoreFilters').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $('.extra-filter').slideDown();
+        $(this).parent().remove();
+    });
+});
+
 </script>
