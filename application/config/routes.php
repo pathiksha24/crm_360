@@ -172,6 +172,9 @@ $route['admin/modules/(:any)/(:any)'] = 'admin/mods/$1/$2';
 
 // Public single ticket route
 $route['forms/tickets/(:any)'] = 'forms/public_ticket/$1';
+$route['auto_assign_leads/get_staff_by_services'] = 'auto_assign_leads/get_staff_by_services';
+$route['auto_assign_leads/get_existing_assignments'] = 'auto_assign_leads/get_existing_assignments';
+
 
 /**
  * @since  2.3.0
