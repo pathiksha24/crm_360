@@ -174,6 +174,8 @@ $route['admin/modules/(:any)/(:any)'] = 'admin/mods/$1/$2';
 $route['forms/tickets/(:any)'] = 'forms/public_ticket/$1';
 $route['auto_assign_leads/get_staff_by_services'] = 'auto_assign_leads/get_staff_by_services';
 $route['auto_assign_leads/get_existing_assignments'] = 'auto_assign_leads/get_existing_assignments';
+$route['auto_assign_leads/get_existing_assignments'] = 'auto_assign_leads/delete_staff_service_assignment';
+$route['auto_assign_leads/save_new_filter'] = 'auto_assign_leads/save_new_filter';
 
 
 /**

@@ -14,5 +14,10 @@ $lang['assignment_status_updated_successfully'] = 'Assignment status updated suc
 $lang['total_assignments_saved'] = '%s assignments saved successfully.';
 $lang['total_assignments_failed'] = '%s assignments failed to save.';
 $lang['no_assignments_were_created'] = 'No assignments were created.';
+$lang['current_service'] = 'Current Service';
+$lang['assign_new_service'] = 'Assign New Service';
+$lang['add_more_staff'] = 'Add More Staff';
+
+
 
 

@@ -40,6 +40,18 @@ public function check_assignment_exists($staff_id, $service_id)
 
     return $query->num_rows() > 0;
 }
-
+public function get_saved_services()
+    {
+        // Order by created_date to show newest first, or by staffname/service_name
+        $this->db->order_by('created_date', 'desc');
+        $this->db->group_by('serviceid');
+        return $this->db->get('tblstaff_services_assigning')->result_array();
+    }
+ public function edit_saved_assignments()
+    {
+        $this->db->order_by('created_date', 'desc');
+        $this->db->where('status', 1);
+        return $this->db->get('tblstaff_services_assigning')->result_array();
+    }
 
 }

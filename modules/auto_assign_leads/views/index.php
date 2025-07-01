@@ -18,11 +18,11 @@ init_head(); ?>
                                     <li class="dropdown-header">Saved Filters</li>
                                       <?php 
                                 $limit = 5; // Number of items to show initially
-                                $total = count($saved_assignments);
+                                $total = count($saved_services);
                                 ?>
 
                                 <?php if ($total > 0) : ?>
-                                    <?php foreach ($saved_assignments as $index => $assignment) : ?>
+                                    <?php foreach ($saved_services as $index => $assignment) : ?>
                                         <li class="<?= $index >= $limit ? 'extra-filter' : '' ?>" style="<?= $index >= $limit ? 'display:none;' : '' ?>">
                                             <a href="#" class="saved-filter-item" data-service-id="<?= $assignment['serviceid'] ?>">
                                                 <?= htmlspecialchars($assignment['service_name']) ?>
@@ -130,7 +130,7 @@ init_head(); ?>
 </div>
 <!-- filter modal starts -->
  
-<div class="modal fade" id="newFilterModal" tabindex="-1" role="dialog" aria-labelledby="newFilterModalLabel" aria-hidden="true">
+<div class="modal fade" id="newFilterModal" tabindex="-1" role="dialog" aria-labelledby="newFilterModalLabel" >
     <div class="modal-dialog modal-lg" role="document"> <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="newFilterModalLabel">Manage Assignments</h5>
@@ -142,6 +142,9 @@ init_head(); ?>
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation" class="active">
                         <a href="#create_assignment_tab" aria-controls="create_assignment_tab" role="tab" data-toggle="tab">Create New Assignment</a>
+                    </li>
+                     <li role="presentation">
+                        <a href="#edit_assignments_tab" aria-controls="edit_assignments_tab" role="tab" data-toggle="tab">Edit Assignments</a>
                     </li>
                     <li role="presentation">
                         <a href="#view_assignments_tab" aria-controls="view_assignments_tab" role="tab" data-toggle="tab">View All Assignments</a>
@@ -245,6 +248,82 @@ init_head(); ?>
                             </tbody>
                         </table>
                     </div>
+                     <div role="tabpanel" class="tab-pane" id="edit_assignments_tab">
+                    <div class="clearfix tw-py-4"></div>
+                    
+                    <!-- 1. Select Service to Filter -->
+                    <div class="form-group">
+                        <label for="filter_service_id"><?php echo _l('select_service'); ?></label>
+                        <select id="filter_service_id" class="selectpicker" data-width="100%" data-live-search="true" title="Select Service">
+                            <?php foreach ($services as $service): ?>
+                                <option value="<?= $service['id'] ?>"><?= htmlspecialchars($service['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <!-- 2. Staff List -->
+                    <form id="bulk_service_update_form" method="POST" action="<?= admin_url('auto_assign_leads/bulk_update_service') ?>">
+                        <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>" />
+                        <input type="hidden" id="old_service_id" name="old_service_id" value="">
+                        
+                        <table class="table table-bordered" id="staff_assignment_table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="check_all_staff"></th>
+                                    <th><?php echo _l('staff'); ?></th>
+                                    <th><?php echo _l('current_service'); ?></th>
+                                     <th><?php echo _l('action'); ?></th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($edit_services as $assignment): ?>
+                                <tr data-service-id="<?= $assignment['serviceid'] ?>" data-staff-id="<?= $assignment['staffid'] ?>" class="assignment-row" style="display:none;">
+                                    <td>
+                                        <input type="checkbox" name="staff_ids[]" value="<?= $assignment['staffid'] ?>" class="staff-checkbox">
+                                    </td>
+                                    <td><?= htmlspecialchars($assignment['staffname']) ?></td>
+                                    <td><?= htmlspecialchars($assignment['service_name']) ?></td>
+                                    <td>
+                                        <a href="#" class="remove-assignment text-danger" title="Remove">
+                                            <i class="fa fa-times"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+
+                            </tbody>
+                        </table>
+                      <div class="form-group">
+                        <label for="extra_staff_ids"><?php echo _l('add_more_staff'); ?></label>
+                        <select name="staff_ids[]" id="extra_staff_ids" class="selectpicker" data-width="100%" data-live-search="true" multiple title="Choose More Staff">
+                            <!-- options will be loaded via JS -->
+                        </select>
+                        <small class="text-muted">These are staff not currently assigned to the selected service.</small>
+                    </div>
+
+
+
+                        
+                        <!-- 3. Select New Service to Assign -->
+                        <div class="form-group">
+                            <label for="new_service_id"><?php echo _l('assign_new_service'); ?></label>
+                            <select name="new_service_id[]" id="new_service_id" class="selectpicker" data-width="100%" data-live-search="true" multiple>
+                                <?php foreach ($services as $service): ?>
+                                    <option value="<?= $service['id'] ?>"><?= htmlspecialchars($service['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        
+                        <!-- 4. Submit Button -->
+                        <div class="text-right mt-2">
+                            <button type="submit" class="btn btn-primary btn-xs">
+                                Update Service Assignment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 </div>
             </div>
         </div>
@@ -305,6 +384,7 @@ $(document).on('change', '.assignment-status-toggle', function() {
         success: function(response) {
             if (response.success) {
                 alert_float('success', response.message);
+
             } else {
                 alert_float('danger', response.message);
                 // Revert the toggle state on AJAX error
@@ -396,13 +476,123 @@ $('#service_ids').on('change', function () {
 
 <!-- more button for saved filters -->
 <script>
-jQuery(document).ready(function($) {
-    $('#showMoreFilters').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $('.extra-filter').slideDown();
-        $(this).parent().remove();
+$(document).ready(function () {
+    $('.selectpicker').selectpicker();
+
+$('#filter_service_id').on('changed.bs.select', function () {
+    var selectedServiceId = $(this).val();
+
+    $('#old_service_id').val(selectedServiceId || '');
+    $('.assignment-row').hide();
+    $('.staff-checkbox').prop('checked', false);
+    $('#check_all_staff').prop('checked', false);
+
+    if (selectedServiceId) {
+        $('.assignment-row[data-service-id="' + selectedServiceId + '"]').show();
+        $('#new_service_id').selectpicker('val', [selectedServiceId]);
+
+        // NEW: Load unassigned staff for this service
+        $.ajax({
+            url: admin_url + 'auto_assign_leads/get_unassigned_staff_for_service',
+            type: 'POST',
+            dataType: 'json',
+            data: { service_id: selectedServiceId },
+            success: function(response) {
+                $('#extra_staff_ids').empty();
+                if (response.length > 0) {
+                    $.each(response, function (index, staff) {
+                        $('#extra_staff_ids').append(
+                            $('<option>', {
+                                value: staff.staffid,
+                                text: staff.staffname
+                            })
+                        );
+                    });
+                } else {
+                    $('#extra_staff_ids').append(
+                        $('<option>', {
+                            disabled: true,
+                            text: 'No unassigned staff available'
+                        })
+                    );
+                }
+
+                $('#extra_staff_ids').selectpicker('refresh');
+            },
+            error: function () {
+                $('#extra_staff_ids').empty().selectpicker('refresh');
+            }
+        });
+    } else {
+        $('#new_service_id').selectpicker('val', []);
+        $('#extra_staff_ids').empty().selectpicker('refresh');
+    }
+});
+
+    
+    // Check/uncheck all visible staff checkboxes
+    $('#check_all_staff').on('change', function () {
+        var isChecked = $(this).is(':checked');
+        $('#staff_assignment_table .assignment-row:visible .staff-checkbox').prop('checked', isChecked);
     });
+});
+
+
+// Remove assignment (no confirmation)
+$(document).on('click', '.remove-assignment', function(e) {
+    e.preventDefault();
+
+    const $row = $(this).closest('tr');
+    const staffId = $row.data('staff-id');
+    const serviceId = $row.data('service-id');
+
+    if (!staffId || !serviceId) {
+        alert_float('danger', 'Missing staff or service ID');
+        return;
+    }
+
+    $.ajax({
+        url: admin_url + 'auto_assign_leads/delete_staff_service_assignment',
+        type: 'POST',
+        data: {
+            staff_id: staffId,
+            service_id: serviceId
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $row.remove();
+                alert_float('success', 'Assignment removed');
+            } else {
+                alert_float('danger', response.message || 'Failed to remove');
+            }
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert_float('danger', 'Server error while deleting');
+        }
+    });
+});
+//when clicking saved filters each it redirects edit asignemnt tab
+$(document).on('click', '.saved-filter-item', function(e) {
+    e.preventDefault();
+
+    var serviceId = $(this).data('service-id');
+
+    // Open modal
+    $('#newFilterModal').modal('show');
+
+    // Activate the Edit Assignments tab
+    $('a[href="#edit_assignments_tab"]').tab('show');
+
+    // Set the service select to the clicked service ID and trigger change to load data
+    $('#filter_service_id').selectpicker('val', serviceId);
+    $('#filter_service_id').trigger('changed.bs.select'); // Bootstrap selectpicker uses this event
+});
+$(document).on('click', '#showMoreFilters', function () {
+    $('.extra-filter').slideDown(); // show the hidden filters
+    $(this).closest('li').remove(); // remove the "More..." button
+    loadFilteredData(); 
 });
 
 </script>

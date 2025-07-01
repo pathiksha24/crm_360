@@ -22,6 +22,8 @@ class Auto_assign_leads extends AdminController
         $data['services']  = $this->db->select('*')->from(db_prefix() . 'leads_services')->get()->result_array();
         $data['sources']   = $this->db->select('*')->from(db_prefix() . 'leads_sources')->get()->result_array();
         $data['saved_assignments'] = $this->auto_assign_leads_model->get_saved_assignments();
+        $data['saved_services'] = $this->auto_assign_leads_model->get_saved_services();
+        $data['edit_services'] = $this->auto_assign_leads_model->edit_saved_assignments();
         $this->load->view('auto_assign_leads/index', $data);
     }
 
@@ -389,6 +391,197 @@ public function get_staff_by_services()
     exit;
 }
 
+public function bulk_update_service() {
+    $staff_ids       = $this->input->post('staff_ids');
+    $new_service_ids = $this->input->post('new_service_id'); // array of service IDs
+    $old_service_id  = $this->input->post('old_service_id');
+    
+    if ($staff_ids && $old_service_id) {
+        $updated = 0;
+        $reactivated = 0;
+        $deleted = 0;
+        $skipped_staff = [];
 
- 
+        // Check if the filtered service is still selected in new_service_ids
+        $filtered_service_selected = in_array($old_service_id, $new_service_ids);
+        
+        if (!$filtered_service_selected) {
+            // If filtered service is NOT selected, DELETE staff from that service
+            foreach ($staff_ids as $staff_id) {
+                $this->db->where('staffid', $staff_id);
+                $this->db->where('serviceid', $old_service_id);
+                $result = $this->db->delete('tblstaff_services_assigning');
+                
+                if ($result) {
+                    $deleted++;
+                }
+            }
+        }
+
+        // Add staff to selected services (including keeping them in filtered service if selected)
+        if (!empty($new_service_ids)) {
+            foreach ($new_service_ids as $new_service_id) {
+                if (empty($new_service_id)) continue;
+                
+                // Get the service details
+                $this->db->where('id', $new_service_id);
+                $service = $this->db->get('tblleads_services')->row();
+                
+                if (!$service) {
+                    continue;
+                }
+
+                foreach ($staff_ids as $staff_id) {
+                    // Check if staff is already assigned to this service
+                    $this->db->where('staffid', $staff_id);
+                    $this->db->where('serviceid', $new_service_id);
+                    $existing_assignment = $this->db->get('tblstaff_services_assigning')->row();
+
+                    $staff_fullname = $this->get_staff_fullname($staff_id);
+
+                    if (!$existing_assignment) {
+                        // Insert new assignment
+                        $data_to_save = [
+                            'staffid'      => $staff_id,
+                            'serviceid'    => $new_service_id,
+                            'staffname'    => $staff_fullname,
+                            'service_name' => $service->name,
+                            'status'       => 1,
+                            'created_date' => date('Y-m-d H:i:s'),
+                            'created_id'   => get_staff_user_id(),
+                        ];
+
+                        $this->db->insert('tblstaff_services_assigning', $data_to_save);
+                        $updated++;
+                    } else {
+                        // Reactivate/update existing assignment
+                        $update_data = [
+                            'staffname'    => $staff_fullname,
+                            'service_name' => $service->name,
+                            'status'       => 1,
+                            'created_date' => date('Y-m-d H:i:s'),
+                            'created_id'   => get_staff_user_id(),
+                        ];
+
+                        $this->db->where('id', $existing_assignment->id);
+                        $this->db->update('tblstaff_services_assigning', $update_data);
+
+                        $reactivated++;
+
+                        if ($new_service_id != $old_service_id) {
+                            $skipped_staff[$staff_id][] = $service->name . ' (reactivated)';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Show appropriate messages
+        $messages = [];
+        if ($deleted > 0) {
+            $messages[] = "$deleted staff member(s) removed from filtered service";
+        }
+        if ($updated > 0) {
+            $messages[] = "$updated new service assignment(s) added";
+        }
+        if ($reactivated > 0) {
+            $messages[] = "$reactivated existing assignment(s) reactivated";
+        }
+        if (!empty($skipped_staff)) {
+            $messages[] = "Some staff were already assigned to selected services";
+        }
+
+        if (!empty($messages)) {
+            set_alert('success', implode('. ', $messages) . '.');
+        } else {
+            set_alert('info', 'No changes were made.');
+        }
+
+    } else {
+        set_alert('warning', 'Please select staff and a service to filter.');
+    }
+
+    redirect(admin_url('auto_assign_leads'));
+}
+
+// Helper function to get full staff name
+protected function get_staff_fullname($staff_id) {
+    $this->db->select('firstname, lastname');
+    $this->db->where('staffid', $staff_id);
+    $staff = $this->db->get('tblstaff')->row();
+
+    if ($staff) {
+        return $staff->firstname . ' ' . $staff->lastname;
+    }
+
+    return '';
+}
+
+public function get_unassigned_staff_for_service()
+{
+    $service_id = $this->input->post('service_id');
+    if (!$service_id) {
+        echo json_encode([]);
+        return;
+    }
+
+    $query = $this->db->query("
+        SELECT s.staffid, s.firstname, s.lastname
+        FROM " . db_prefix() . "staff s
+        WHERE s.staffid NOT IN (
+            SELECT staffid
+            FROM " . db_prefix() . "staff_services_assigning
+            WHERE serviceid = ? AND status = 1
+        )
+        AND (
+            s.staffid NOT IN (
+                SELECT staffid
+                FROM " . db_prefix() . "staff_services_assigning
+                WHERE serviceid = ?
+            )
+            OR s.staffid IN (
+                SELECT staffid
+                FROM " . db_prefix() . "staff_services_assigning
+                WHERE serviceid = ? AND status = 0
+            )
+        )
+    ", [$service_id, $service_id, $service_id]);
+
+    $result = $query->result_array();
+
+    $staff = array_map(function ($s) {
+        return [
+            'staffid'   => $s['staffid'],
+            'staffname' => $s['firstname'] . ' ' . $s['lastname'],
+        ];
+    }, $result);
+
+    echo json_encode($staff);
+}
+
+
+
+public function delete_staff_service_assignment()
+{
+    $staff_id   = $this->input->post('staff_id');
+    $service_id = $this->input->post('service_id');
+
+    if (!$staff_id || !$service_id) {
+        echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+        return;
+    }
+
+    $this->db->where('staffid', $staff_id);
+    $this->db->where('serviceid', $service_id);
+    $deleted = $this->db->delete(db_prefix() . 'staff_services_assigning');
+
+    if ($deleted) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
+}
+
+
+
 }
