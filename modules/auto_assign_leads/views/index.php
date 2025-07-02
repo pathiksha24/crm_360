@@ -202,11 +202,20 @@ init_head(); ?>
                         <?php echo form_close(); ?>
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="view_assignments_tab">
+                      <div role="tabpanel" class="tab-pane" id="view_assignments_tab">
                         <div class="clearfix tw-py-4"></div>
+                          <div class="tw-mb-2 tw-flex tw-justify-end tw-space-x-2 tw-text-sm">
+                        <button class="btn btn-success tw-text-sm" id="bulk_activate_btn">
+                            <?php echo _l('bulk_activate'); ?>
+                        </button>
+                        <button class="btn btn-danger tw-text-sm" id="bulk_deactivate_btn">
+                            <?php echo _l('bulk_deactivate'); ?>
+                        </button>
+                       </div>
                         <table class="table dt-table scroll-responsive" id="assignmentsInModalTable">
                             <thead>
                                 <tr>
+                                     <th><input type="checkbox" id="select_all_assignments"></th>
                                     <th><?php echo htmlspecialchars(_l('staff')); ?></th>
                                     <th><?php echo htmlspecialchars(_l('service')); ?></th>
                                     <th><?php echo htmlspecialchars(_l('status')); ?></th>
@@ -218,6 +227,10 @@ init_head(); ?>
                                 <?php if (!empty($saved_assignments)) { ?>
                                     <?php foreach ($saved_assignments as $assignment) { ?>
                                         <tr>
+                                             <td>
+                                                <input type="checkbox" class="assignment-checkbox" value="<?php echo $assignment['id']; ?>">
+                                            </td>
+
                                             <td><?php echo htmlspecialchars($assignment['staffname']); ?></td>
                                             <td><?php echo htmlspecialchars($assignment['service_name']); ?></td>
                                             <td>
@@ -242,7 +255,7 @@ init_head(); ?>
                                     <?php } ?>
                                 <?php } else { ?>
                                     <tr>
-                                        <td colspan="5" class="text-center">No staff-service assignments found.</td>
+                                        <td colspan="6" class="text-center">No staff-service assignments found.</td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -594,5 +607,53 @@ $(document).on('click', '#showMoreFilters', function () {
     $(this).closest('li').remove(); // remove the "More..." button
     loadFilteredData(); 
 });
+// bulk update start
+// Select all checkbox toggle
+$('#select_all_assignments').on('change', function() {
+    $('.assignment-checkbox').prop('checked', $(this).is(':checked'));
+});
 
+// Bulk status update handler
+function bulkUpdateAssignments(status) {
+    var selectedIds = $('.assignment-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    if (selectedIds.length === 0) {
+        alert_float('warning', 'Please select at least one assignment.');
+        return;
+    }
+
+    $.ajax({
+        url: admin_url + 'auto_assign_leads/bulk_update_status',
+        type: 'POST',
+        data: {
+            ids: selectedIds,
+            status: status,
+            // '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert_float('success', response.message);
+                location.reload(); // Or refresh part of table if using AJAX
+            } else {
+                alert_float('danger', response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert_float('danger', 'An error occurred: ' + error);
+            console.error("AJAX Error:", status, error, xhr.responseText);
+        }
+    });
+}
+
+$('#bulk_activate_btn').click(function() {
+    bulkUpdateAssignments(1);
+});
+
+$('#bulk_deactivate_btn').click(function() {
+    bulkUpdateAssignments(0);
+});
+// bulk update ends
 </script>

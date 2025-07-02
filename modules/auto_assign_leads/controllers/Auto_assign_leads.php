@@ -581,7 +581,42 @@ public function delete_staff_service_assignment()
         echo json_encode(['success' => false]);
     }
 }
+public function bulk_update_status()
+{
+    if ($this->input->is_ajax_request()) {
+        // Expect an array of IDs and a single status
+        $ids    = $this->input->post('ids');    
+        $status = $this->input->post('status');
 
+        // Validation
+        if (empty($ids) || !is_array($ids) || !in_array($status, ['0', '1'], true)) {
+            return $this->output
+                        ->set_content_type('application/json')
+                        ->set_output(json_encode([
+                            'success' => false,
+                            'message' => _l('invalid_request')
+                        ]));
+        }
+
+        // Cast status to integer
+        $status = (int) $status;
+
+        // Call the model
+        $updated = $this->auto_assign_leads_model->bulk_update_status($ids, $status);
+
+        return $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode([
+                        'success' => $updated,
+                        'message' => $updated 
+                            ? _l('bulk_status_update_success') 
+                            : _l('bulk_status_update_failed')
+                    ]));
+    }
+
+    // Fallback redirect for non-AJAX
+    redirect(admin_url('auto_assign_leads'));
+}
 
 
 }

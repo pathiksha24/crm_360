@@ -19,5 +19,12 @@ $lang['assign_new_service'] = 'Assign New Service';
 $lang['add_more_staff'] = 'Add More Staff';
 
 
+$lang['bulk_activate']   = 'Bulk Activate';
+$lang['bulk_deactivate'] = 'Bulk Deactivate';
+$lang['bulk_status_update_success'] = 'Bulk status updated successfully.';
+$lang['bulk_status_update_failed']  = 'Failed to update bulk status.';
+
+
+
 
 

@@ -53,5 +53,15 @@ public function get_saved_services()
         $this->db->where('status', 1);
         return $this->db->get('tblstaff_services_assigning')->result_array();
     }
+       public function bulk_update_status(array $ids, int $status): bool
+    {
+    if (empty($ids)) {
+        return false;
+    }
+    // Update all matching IDs
+    $this->db->where_in('id', $ids);
+    return (bool) $this->db
+                     ->update(db_prefix() . 'staff_services_assigning', ['status' => $status]);
+    }
 
 }
