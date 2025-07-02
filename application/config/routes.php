@@ -172,10 +172,12 @@ $route['admin/modules/(:any)/(:any)'] = 'admin/mods/$1/$2';
 
 // Public single ticket route
 $route['forms/tickets/(:any)'] = 'forms/public_ticket/$1';
-$route['auto_assign_leads/get_staff_by_services'] = 'auto_assign_leads/get_staff_by_services';
 $route['auto_assign_leads/get_existing_assignments'] = 'auto_assign_leads/get_existing_assignments';
-$route['auto_assign_leads/get_existing_assignments'] = 'auto_assign_leads/delete_staff_service_assignment';
+$route['auto_assign_leads/delete_staff_service_assignment'] = 'auto_assign_leads/delete_staff_service_assignment';
 $route['auto_assign_leads/save_new_filter'] = 'auto_assign_leads/save_new_filter';
+$route['auto_assign_leads/get_unassigned_staff_for_service_source'] = 'auto_assign_leads/get_unassigned_staff_for_service_source';
+$route['auto_assign_leads/get_staff_by_filters'] = 'auto_assign_leads/get_staff_by_filters';
+
 
 
 /**
