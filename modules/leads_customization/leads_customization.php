@@ -16,6 +16,7 @@ $CI = &get_instance();
 $CI->load->helper(LEADS_CUSTOM_MODULE_NAME . '/leads_customization');
 hooks()->add_action('app_admin_head', 'leads_customization_load_js');
 hooks()->add_filter('get_dashboard_widgets', 'leads_customization_add_dashboard_widget');
+hooks()->add_filter('get_dashboard_widgets', 'callcenter_leads_staff_widget');
 hooks()->add_filter('lead_available_dupicate_validation_fields_option', 'leads_customization_lead_available_dupicate_validation_fields_option');
 
 
@@ -36,6 +37,18 @@ function leads_customization_add_dashboard_widget($widgets)
     ];
     return $widgets;
 }
+hooks()->add_filter('get_dashboard_widgets', 'callcenter_leads_staff_widget');
+
+function callcenter_leads_staff_widget($widgets)
+{
+   $widgets[] = [
+  'path'      => 'callcenter_leads/callcenter_staffs_widget',
+  'container' => 'top-12',
+];
+
+    return $widgets;
+}
+
 function leads_customization_load_js(){
         echo '<script src="' . module_dir_url(LEADS_CUSTOM_MODULE_NAME, 'assets/js/global.js') .'?v=' . time(). '"></script>';
     $CI = &get_instance();
