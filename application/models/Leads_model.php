@@ -112,6 +112,34 @@ class Leads_model extends App_Model
         $data['email'] = trim($data['email']);
         $this->db->insert(db_prefix() . 'leads', $data);
         $insert_id = $this->db->insert_id();
+
+         // ✅ START: Insert into tblleads_assigned_history
+        if ($insert_id) {
+           $assigned_to = $data['assigned'] ?? 0;
+            $logged_in_id = get_staff_user_id();
+            $lead_creator_name = get_staff_full_name($logged_in_id);
+
+            $history_data = [
+                'lead_created_by'    => $logged_in_id,
+                'lead_created_name'  => $lead_creator_name,
+                'assigned_to'        => $assigned_to,
+                'assigned_to_name'   => $assigned_to != 0 ? get_staff_full_name($assigned_to) : '',
+                'created_date'       => date('Y-m-d H:i:s'),
+                'service'            => $data['service'] ?? null,
+                'status'             => $data['status'] ?? null,
+                'source'             => $data['source'] ?? null,
+            ];
+
+            // Only set assigned_by if there is an actual assignment
+            if ($assigned_to != 0) {
+                $history_data['assigned_by'] = $logged_in_id;
+                $history_data['assigned_by_name'] = $lead_creator_name;
+            }
+
+            $this->db->insert(db_prefix() . 'leads_assigned_history', $history_data);
+        }
+       // ✅ END
+
         if ($insert_id) {
             log_activity('New Lead Added [ID: ' . $insert_id . ']');
             $this->log_lead_activity($insert_id, 'not_lead_activity_created');
@@ -123,6 +151,8 @@ class Leads_model extends App_Model
             }
 
             $this->lead_assigned_member_notification($insert_id, $data['assigned']);
+            $assigned_to_id = isset($data['assigned']) ? (int) $data['assigned'] : 0;
+
             hooks()->do_action('lead_created', $insert_id);
 
             return $insert_id;
@@ -303,6 +333,37 @@ class Leads_model extends App_Model
                     $this->lead_assigned_member_notification($id, $data['assigned']);
                 }
             }
+
+            // INSERT HISTORY RECORD
+            $lead_created_by    = $current_lead_data->addedfrom;
+            $lead_created_name  = get_staff_full_name($lead_created_by);
+
+            $assigned_by_id     = get_staff_user_id();
+            $assigned_by_name   = get_staff_full_name($assigned_by_id);
+
+            $assigned_to_id     = isset($data['assigned']) ? $data['assigned'] : 0;
+            $assigned_to_name   = $assigned_to_id != 0 ? get_staff_full_name($assigned_to_id) : '';
+
+            $history_data = [
+                'lead_created_by'    => $lead_created_by,
+                'lead_created_name'  => $lead_created_name,
+                'assigned_to'        => $assigned_to_id,
+                'assigned_to_name'   => $assigned_to_id != 0 ? $assigned_to_name : '',
+                'created_date'       => date('Y-m-d H:i:s'),
+                'service'            => $data['service'] ?? null,
+                'status'             => $data['status'] ?? null,
+                'source'             => $data['source'] ?? null,
+            ];
+
+            // Only set assigned_by if there is an actual assignment
+            if ($assigned_to_id != 0) {
+                $history_data['assigned_by'] = $assigned_by_id;
+                $history_data['assigned_by_name'] = $assigned_by_name;
+            }
+
+            $this->db->insert(db_prefix() . 'leads_assigned_history', $history_data);
+        // ✅ END
+
             log_activity('Lead Updated [ID: ' . $id . ']');
 
             hooks()->do_action('after_lead_updated', $id);

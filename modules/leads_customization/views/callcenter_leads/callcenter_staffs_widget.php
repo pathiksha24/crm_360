@@ -38,32 +38,38 @@ switch ($period) {
         $start_date = date('Y-01-01', strtotime('-1 year'));
         $end_date   = date('Y-12-31', strtotime('-1 year'));
         break;
-    case 'custom':
-        $start_date = $CI->input->get('report-from');
-        $end_date   = $CI->input->get('report-to');
-        break;
+   case 'custom':
+    $from_raw = $CI->input->get('report-from');
+    $to_raw = $CI->input->get('report-to');
+
+    // Convert DD-MM-YYYY to YYYY-MM-DD using DateTime
+    $from = DateTime::createFromFormat('d-m-Y', $from_raw);
+    $to   = DateTime::createFromFormat('d-m-Y', $to_raw);
+
+    if ($from && $to) {
+        $start_date = $from->format('Y-m-d');
+        $end_date   = $to->format('Y-m-d');
+    }
+    break;
+
 }
 
-$CI->db->select('addedfrom, assigned, dateadded');
-$CI->db->from(db_prefix() . 'leads');
-$CI->db->where_in('addedfrom', $callcenter_ids);
-$CI->db->where('assigned !=', 0);
+// Query tblleads_assigned_history table
+$CI->db->select('assigned_by, COUNT(*) AS total_assigned');
+$CI->db->from(db_prefix() . 'leads_assigned_history');
+$CI->db->where_in('assigned_by', $callcenter_ids);
+
 if ($start_date && $end_date) {
-    $CI->db->where('dateadded >=', $start_date . ' 00:00:00');
-    $CI->db->where('dateadded <=', $end_date . ' 23:59:59');
+    $CI->db->where('created_date >=', $start_date . ' 00:00:00');
+    $CI->db->where('created_date <=', $end_date . ' 23:59:59');
 }
 
+$CI->db->group_by('assigned_by');
 $results = $CI->db->get()->result_array();
+
 $staff_lead_count = [];
 foreach ($results as $row) {
-    $from = (int)$row['addedfrom'];
-    $to   = (int)$row['assigned'];
-    if ($from === $to) continue;
-
-    if (!isset($staff_lead_count[$from])) {
-        $staff_lead_count[$from] = 0;
-    }
-    $staff_lead_count[$from]++;
+    $staff_lead_count[(int)$row['assigned_by']] = (int)$row['total_assigned'];
 }
 ?>
 
@@ -93,17 +99,20 @@ foreach ($results as $row) {
                 <option value="custom" <?= $period == 'custom' ? 'selected' : '' ?>><?php echo _l('custom'); ?></option>
               </select>
             </div>
+<div id="date-range" class="<?= $period != 'custom' ? 'hide' : ''; ?> mtop10">
+  <div class="row">
+    <div class="col-md-6">
+      <?php echo render_date_input('report-from', 'report_sales_from_date', $CI->input->get('report-from')); ?>
+    </div>
+    <div class="col-md-6">
+      <?php echo render_date_input('report-to', 'report_sales_to_date', $CI->input->get('report-to')); ?>
+    </div>
+    <div class="col-md-12 mtop10 text-right">
+      <button type="submit" class="btn btn-primary"><?php echo _l('filter'); ?></button>
+    </div>
+  </div>
+</div>
 
-            <div id="date-range" class="<?= $period != 'custom' ? 'hide' : ''; ?> mtop10">
-              <div class="row">
-                <div class="col-md-6">
-                  <?php echo render_date_input('report-from', 'report_sales_from_date', $CI->input->get('report-from')); ?>
-                </div>
-                <div class="col-md-6">
-                  <?php echo render_date_input('report-to', 'report_sales_to_date', $CI->input->get('report-to')); ?>
-                </div>
-              </div>
-            </div>
           </form>
         </div>
       </div>
@@ -146,13 +155,15 @@ foreach ($results as $row) {
       order: [[1, 'desc']],
       responsive: true
     });
+$('select[name="months-report"]').on('change', function () {
+  if ($(this).val() === 'custom') {
+    $('#date-range').removeClass('hide');
+    // Do not auto-submit
+  } else {
+    $('#date-range').addClass('hide');
+    $('#period-form').submit(); // Only auto-submit for non-custom selections
+  }
+});
 
-    $('select[name="months-report"]').on('change', function () {
-      if ($(this).val() === 'custom') {
-        $('#date-range').removeClass('hide');
-      } else {
-        $('#date-range').addClass('hide');
-      }
-    });
   });
 </script>
