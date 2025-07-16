@@ -58,6 +58,9 @@ switch ($period) {
 $CI->db->select('assigned_by, COUNT(*) AS total_assigned');
 $CI->db->from(db_prefix() . 'leads_assigned_history');
 $CI->db->where_in('assigned_by', $callcenter_ids);
+/* ✱ NEW filters ✱ */
+$CI->db->where('assigned_by != assigned_to');   // drop self-assigns
+$CI->db->where('assigned_to !=', 0);            // drop “unassigned/0” rows
 
 if ($start_date && $end_date) {
     $CI->db->where('created_date >=', $start_date . ' 00:00:00');
