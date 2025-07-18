@@ -134,14 +134,31 @@ if (is_admin()) {
         array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.$this->ci->input->post('team_leader'));
     }
 }
-if (is_team_leader()) {
-    array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.get_staff_user_id());
+// if (is_team_leader()) {
+//     array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.get_staff_user_id());
+// }
+
+// if (!is_admin() && !is_team_leader()){
+//     array_push($where, 'AND ' . db_prefix() . 'leads.assigned = '.get_staff_user_id());
+
+// }
+$current_user = get_staff_user_id();
+$ehab_id = 183;
+
+if ($current_user == $ehab_id || is_admin()) {
+    // Ehab OR Admin: see all leads (no WHERE clause added)
+}
+elseif (is_team_leader()) {
+    array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = ' . $current_user);
+}
+else {
+    array_push($where, 'AND (' .
+        db_prefix() . 'leads.assigned = ' . $current_user .
+        ' OR ' . db_prefix() . 'leads.addedfrom = ' . $current_user .
+        ' OR ' . db_prefix() . 'leads.is_public = 1' .
+    ')');
 }
 
-if (!is_admin() && !is_team_leader()){
-    array_push($where, 'AND ' . db_prefix() . 'leads.assigned = '.get_staff_user_id());
-
-}
 
 //filter by lead type
 
