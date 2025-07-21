@@ -38,45 +38,87 @@ switch ($period) {
         $start_date = date('Y-01-01', strtotime('-1 year'));
         $end_date   = date('Y-12-31', strtotime('-1 year'));
         break;
-   case 'custom':
-    $from_raw = $CI->input->get('report-from');
-    $to_raw = $CI->input->get('report-to');
-
-    // Convert DD-MM-YYYY to YYYY-MM-DD using DateTime
-    $from = DateTime::createFromFormat('d-m-Y', $from_raw);
-    $to   = DateTime::createFromFormat('d-m-Y', $to_raw);
-
-    if ($from && $to) {
-        $start_date = $from->format('Y-m-d');
-        $end_date   = $to->format('Y-m-d');
-    }
-    break;
-
+    case 'custom':
+        $from_raw = $CI->input->get('report-from');
+        $to_raw = $CI->input->get('report-to');
+        $from = DateTime::createFromFormat('d-m-Y', $from_raw);
+        $to   = DateTime::createFromFormat('d-m-Y', $to_raw);
+        if ($from && $to) {
+            $start_date = $from->format('Y-m-d');
+            $end_date   = $to->format('Y-m-d');
+        }
+        break;
 }
 
-// Query tblleads_assigned_history table
-$CI->db->select('assigned_by, COUNT(*) AS total_assigned');
-$CI->db->from(db_prefix() . 'leads_assigned_history');
-$CI->db->where_in('assigned_by', $callcenter_ids);
-/* ✱ NEW filters ✱ */
-$CI->db->where('assigned_by != assigned_to');   // drop self-assigns
-$CI->db->where('assigned_to !=', 0);            // drop “unassigned/0” rows
 
+// Fetch logs from tbllead_activity_log where call center agents assigned leads
+$CI->db->select('LAL.*');
+$CI->db->from(db_prefix() . 'lead_activity_log AS LAL');
+$CI->db->join(db_prefix() . 'leads AS TL', 'TL.id = LAL.leadid', 'inner');
+$CI->db->where('LAL.description', 'not_lead_activity_assigned_to');
+$CI->db->where_in('LAL.staffid', $callcenter_ids);
+$CI->db->where('LAL.additional_data !=', '');
+//$CI->db->group_by('LAL.leadid');
+
+
+// Apply lead filters
+// $CI->db->where('TL.status !=', 8);
+$CI->db->where_in('TL.status', [2, 7, 8, 5]);
+$CI->db->where_not_in('TL.service', [198, 168]);
+
+// Date filter
 if ($start_date && $end_date) {
-    $CI->db->where('created_date >=', $start_date . ' 00:00:00');
-    $CI->db->where('created_date <=', $end_date . ' 23:59:59');
+    $CI->db->where('LAL.date >=', $start_date . ' 00:00:00');
+    $CI->db->where('LAL.date <=', $end_date . ' 23:59:59');
 }
 
-$CI->db->group_by('assigned_by');
-$results = $CI->db->get()->result_array();
+$logs = $CI->db->get()->result_array();
 
-$staff_lead_count = [];
-foreach ($results as $row) {
-    $staff_lead_count[(int)$row['assigned_by']] = (int)$row['total_assigned'];
+
+$assigner_counts = [];
+
+foreach ($logs as $log) {
+    $assigner_id = $log['staffid'];
+    $data = @unserialize($log['additional_data']);
+
+    if (!is_array($data) || !isset($data[1])) {
+        continue;
+    }
+
+    // Extract assignee ID from href
+    if (preg_match('/profile\/(\d+)/', $data[1], $id_match)) {
+        $assignee_id = (int)$id_match[1];
+    } else {
+        continue; // couldn't extract assignee ID, skip
+    }
+
+    // Skip self-assigned and assignments to call center staff
+    if ($assigner_id == $assignee_id || in_array($assignee_id, $callcenter_ids)) {
+        continue;
+    }
+
+    // Count assignment
+    if (!isset($assigner_counts[$assigner_id])) {
+        $assigner_counts[$assigner_id] = 0;
+    }
+    $assigner_counts[$assigner_id]++;
 }
+
+$assigner_names = [];
+if (!empty($assigner_counts)) {
+    $CI->db->where_in('staffid', array_keys($assigner_counts));
+    $staff_list = $CI->db->get(db_prefix() . 'staff')->result_array();
+    foreach ($staff_list as $staff) {
+        $assigner_names[$staff['staffid']] = $staff['firstname'] . ' ' . $staff['lastname'];
+    }
+}
+
+
+
+
 ?>
 
-<div class="widget" id="callcenter-assigned-to-staff" data-name="<?php echo basename(__FILE__, ".php"); ?>">
+<div class="widget" id="assigned-to-count-widget" data-name="<?php echo basename(__FILE__, ".php"); ?>">
   <div class="panel_s user-data">
     <div class="panel-body">
       <div class="widget-dragger"></div>
@@ -84,7 +126,7 @@ foreach ($results as $row) {
       <!-- Header and Filters -->
       <div class="row">
         <div class="col-md-6">
-          <h4 class="bold"><?php echo _l('Call Center Staff Assigned List'); ?></h4>
+          <h4 class="bold"><?php echo _l('Call Center Staff Assigned To - Lead Count'); ?></h4>
         </div>
         <div class="col-md-6 text-right">
           <form method="get" id="period-form" class="form-inline">
@@ -102,71 +144,71 @@ foreach ($results as $row) {
                 <option value="custom" <?= $period == 'custom' ? 'selected' : '' ?>><?php echo _l('custom'); ?></option>
               </select>
             </div>
-<div id="date-range" class="<?= $period != 'custom' ? 'hide' : ''; ?> mtop10">
-  <div class="row">
-    <div class="col-md-6">
-      <?php echo render_date_input('report-from', 'report_sales_from_date', $CI->input->get('report-from')); ?>
-    </div>
-    <div class="col-md-6">
-      <?php echo render_date_input('report-to', 'report_sales_to_date', $CI->input->get('report-to')); ?>
-    </div>
-    <div class="col-md-12 mtop10 text-right">
-      <button type="submit" class="btn btn-primary"><?php echo _l('filter'); ?></button>
-    </div>
-  </div>
-</div>
-
+            <div id="date-range" class="<?= $period != 'custom' ? 'hide' : ''; ?> mtop10">
+              <div class="row">
+                <div class="col-md-6">
+                  <?php echo render_date_input('report-from', 'report_sales_from_date', $CI->input->get('report-from')); ?>
+                </div>
+                <div class="col-md-6">
+                  <?php echo render_date_input('report-to', 'report_sales_to_date', $CI->input->get('report-to')); ?>
+                </div>
+                <div class="col-md-12 mtop10 text-right">
+                  <button type="submit" class="btn btn-primary"><?php echo _l('filter'); ?></button>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       </div>
 
       <hr class="mtop10"/>
+<!-- Table -->
+<div class="table-responsive mtop15">
+  <table class="table table-striped" id="assigned-to-table">
+    <thead>
+      <tr>
+        <th><?php echo _l('Call Center Staff'); ?></th>
+        <th><?php echo _l('Total Leads Assigned'); ?></th>
+      </tr>
+    </thead>
+<tbody>
+  <?php foreach ($assigner_counts as $staff_id => $count): ?>
+    <tr>
+      <td>
+        <?php
+          echo isset($assigner_names[$staff_id])
+            ? htmlspecialchars($assigner_names[$staff_id])
+            : 'Staff ID #' . $staff_id;
+        ?>
+      </td>
+      <td><?php echo $count; ?></td>
+    </tr>
+  <?php endforeach; ?>
+</tbody>
 
-      <!-- Table -->
-      <div class="table-responsive mtop15">
-        <table class="table table-striped" id="callcenter-leads-table">
-          <thead>
-            <tr>
-              <th><?php echo _l('Call Center Staff'); ?></th>
-              <th><?php echo _l('Total Leads Assigned'); ?></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($callcenter_ids as $staff_id): ?>
-              <?php
-                if (!isset($staff_lead_count[$staff_id]) || $staff_lead_count[$staff_id] == 0) continue;
-                $staff_name = get_staff_full_name($staff_id);
-                if (trim($staff_name) === '') continue;
-              ?>
-              <tr>
-                <td><?= $staff_name; ?></td>
-                <td><?= $staff_lead_count[$staff_id]; ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
+  </table>
+</div>
+
     </div>
   </div>
 </div>
 
 <script>
   $(function () {
-    $('#callcenter-leads-table').DataTable({
+    $('#assigned-to-table').DataTable({
       dom: '<"row"<"col-md-6"l><"col-md-6 text-right"f>>rt<"bottom"ip>',
       pageLength: 10,
       order: [[1, 'desc']],
       responsive: true
     });
-$('select[name="months-report"]').on('change', function () {
-  if ($(this).val() === 'custom') {
-    $('#date-range').removeClass('hide');
-    // Do not auto-submit
-  } else {
-    $('#date-range').addClass('hide');
-    $('#period-form').submit(); // Only auto-submit for non-custom selections
-  }
-});
 
+    $('select[name="months-report"]').on('change', function () {
+      if ($(this).val() === 'custom') {
+        $('#date-range').removeClass('hide');
+      } else {
+        $('#date-range').addClass('hide');
+        $('#period-form').submit();
+      }
+    });
   });
 </script>
