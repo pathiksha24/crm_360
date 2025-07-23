@@ -2,9 +2,13 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 $CI = &get_instance();
-$callcenter_ids = [59, 55, 14, 72, 163, 216, 34, 20, 214];
+$callcenter_ids = [59, 55, 14, 72, 163, 216, 34, 20, 214, 225];
 
-$period = $CI->input->get('months-report');
+$period = $CI->input->get('months-report') ?? 'today';
+if ($period === '') {
+    $period = 'all';
+}
+
 $start_date = null;
 $end_date = date('Y-m-d');
 
@@ -48,32 +52,28 @@ switch ($period) {
             $end_date   = $to->format('Y-m-d');
         }
         break;
+    case 'all':
+        $start_date = null;
+        $end_date = null;
+        break;
 }
 
-
-// Fetch logs from tbllead_activity_log where call center agents assigned leads
+// Fetch logs
 $CI->db->select('LAL.*');
 $CI->db->from(db_prefix() . 'lead_activity_log AS LAL');
 $CI->db->join(db_prefix() . 'leads AS TL', 'TL.id = LAL.leadid', 'inner');
 $CI->db->where('LAL.description', 'not_lead_activity_assigned_to');
 $CI->db->where_in('LAL.staffid', $callcenter_ids);
 $CI->db->where('LAL.additional_data !=', '');
-//$CI->db->group_by('LAL.leadid');
-
-
-// Apply lead filters
-// $CI->db->where('TL.status !=', 8);
 $CI->db->where_in('TL.status', [2, 7, 8, 5]);
 $CI->db->where_not_in('TL.service', [198, 168]);
 
-// Date filter
 if ($start_date && $end_date) {
     $CI->db->where('LAL.date >=', $start_date . ' 00:00:00');
     $CI->db->where('LAL.date <=', $end_date . ' 23:59:59');
 }
 
 $logs = $CI->db->get()->result_array();
-
 
 $assigner_counts = [];
 
@@ -85,19 +85,16 @@ foreach ($logs as $log) {
         continue;
     }
 
-    // Extract assignee ID from href
     if (preg_match('/profile\/(\d+)/', $data[1], $id_match)) {
         $assignee_id = (int)$id_match[1];
     } else {
-        continue; // couldn't extract assignee ID, skip
+        continue;
     }
 
-    // Skip self-assigned and assignments to call center staff
     if ($assigner_id == $assignee_id || in_array($assignee_id, $callcenter_ids)) {
         continue;
     }
 
-    // Count assignment
     if (!isset($assigner_counts[$assigner_id])) {
         $assigner_counts[$assigner_id] = 0;
     }
@@ -112,10 +109,6 @@ if (!empty($assigner_counts)) {
         $assigner_names[$staff['staffid']] = $staff['firstname'] . ' ' . $staff['lastname'];
     }
 }
-
-
-
-
 ?>
 
 <div class="widget" id="assigned-to-count-widget" data-name="<?php echo basename(__FILE__, ".php"); ?>">
@@ -132,7 +125,7 @@ if (!empty($assigner_counts)) {
           <form method="get" id="period-form" class="form-inline">
             <div class="form-group">
               <select class="selectpicker" name="months-report" data-width="200px" onchange="document.getElementById('period-form').submit();">
-                <option value=""><?php echo _l('all'); ?></option>
+                <option value="all" <?= $period == 'all' ? 'selected' : '' ?>><?php echo _l('all'); ?></option>
                 <option value="today" <?= $period == 'today' ? 'selected' : '' ?>><?php echo _l('today'); ?></option>
                 <option value="yesterday" <?= $period == 'yesterday' ? 'selected' : '' ?>><?php echo _l('yesterday'); ?></option>
                 <option value="this_week" <?= $period == 'this_week' ? 'selected' : '' ?>><?php echo _l('this_week'); ?></option>
@@ -162,33 +155,31 @@ if (!empty($assigner_counts)) {
       </div>
 
       <hr class="mtop10"/>
-<!-- Table -->
-<div class="table-responsive mtop15">
-  <table class="table table-striped" id="assigned-to-table">
-    <thead>
-      <tr>
-        <th><?php echo _l('Call Center Staff'); ?></th>
-        <th><?php echo _l('Total Leads Assigned'); ?></th>
-      </tr>
-    </thead>
-<tbody>
-  <?php foreach ($assigner_counts as $staff_id => $count): ?>
-    <tr>
-      <td>
-        <?php
-          echo isset($assigner_names[$staff_id])
-            ? htmlspecialchars($assigner_names[$staff_id])
-            : 'Staff ID #' . $staff_id;
-        ?>
-      </td>
-      <td><?php echo $count; ?></td>
-    </tr>
-  <?php endforeach; ?>
-</tbody>
-
-  </table>
-</div>
-
+      <!-- Table -->
+      <div class="table-responsive mtop15">
+        <table class="table table-striped" id="assigned-to-table">
+          <thead>
+            <tr>
+              <th><?php echo _l('Call Center Staff'); ?></th>
+              <th><?php echo _l('Total Leads Assigned'); ?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($assigner_counts as $staff_id => $count): ?>
+              <tr>
+                <td>
+                  <?php
+                    echo isset($assigner_names[$staff_id])
+                      ? htmlspecialchars($assigner_names[$staff_id])
+                      : 'Staff ID #' . $staff_id;
+                  ?>
+                </td>
+                <td><?php echo $count; ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
