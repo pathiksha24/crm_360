@@ -67,6 +67,13 @@ $CI->db->where_in('LAL.staffid', $callcenter_ids);
 $CI->db->where('LAL.additional_data !=', '');
 $CI->db->where_in('TL.status', [2, 7, 8, 5]);
 $CI->db->where_not_in('TL.service', [198, 168]);
+$CI->db->where("NOT EXISTS (
+    SELECT 1 
+    FROM " . db_prefix() . "taggables AS TT
+    WHERE TT.rel_type = 'lead' 
+      AND TT.rel_id = TL.id 
+      AND TT.tag_id IN (145, 146)
+)", null, false);
 
 if ($start_date && $end_date) {
     $CI->db->where('LAL.date >=', $start_date . ' 00:00:00');
@@ -164,20 +171,28 @@ if (!empty($assigner_counts)) {
               <th><?php echo _l('Total Leads Assigned'); ?></th>
             </tr>
           </thead>
-          <tbody>
-            <?php foreach ($assigner_counts as $staff_id => $count): ?>
-              <tr>
-                <td>
-                  <?php
-                    echo isset($assigner_names[$staff_id])
-                      ? htmlspecialchars($assigner_names[$staff_id])
-                      : 'Staff ID #' . $staff_id;
-                  ?>
-                </td>
-                <td><?php echo $count; ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
+                  <tbody>
+          <?php foreach ($assigner_counts as $staff_id => $count): ?>
+            <tr>
+              <td>
+                <?php
+                  echo isset($assigner_names[$staff_id])
+                    ? htmlspecialchars($assigner_names[$staff_id])
+                    : 'Staff ID #' . $staff_id;
+                ?>
+              </td>
+              <td><?php echo $count; ?></td>
+            </tr>
+          <?php endforeach; ?>
+        
+          <?php if (!empty($assigner_counts)): ?>
+            <tr>
+               <td style="font-weight: bold;"><?php echo _l('Total'); ?></td>
+      <td style="font-weight: bold;"><?php echo array_sum($assigner_counts); ?></td>
+            </tr>
+          <?php endif; ?>
+        </tbody>
+
         </table>
       </div>
     </div>
