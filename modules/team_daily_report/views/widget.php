@@ -58,37 +58,37 @@ $team_daily_report_widgets = $this->db->get_where(db_prefix().'team_daily_report
                     continue;
                 }
                 ?>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="col-md-12">
-                            <h4 class="text-dark text-uppercase bold"><?php echo htmlspecialchars(_l('Widget')).': '.htmlspecialchars($team_daily_report_widget['widget_name']); ?></h4>
-                            <p class="text-dark text-uppercase bold"><?php echo implode(' | ', $widget_detail) ?></p>
-                        </div>
-                        <div class="clearfix"></div>
-                        <br>
-                        <hr class="mtop15" />
-                    </div>
-                    <div class="col-md-12">
-                        <table class="table table-team_daily_report_widget-<?php echo htmlspecialchars($team_daily_report_widget['id']); ?> dt-table">
-                            <thead>
-                            <th><?php echo htmlspecialchars(_l('staff')); ?></th>
-                            <th><?php echo htmlspecialchars(_l('total_closing')); ?></th>
-                            <th><?php echo htmlspecialchars(_l('gross')); ?></th>
-                            <th><?php echo htmlspecialchars(_l('net')); ?></th>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <br>
-                        <hr class="mtop15" />
-                    </div>
-                </div>
+                <!--<div class="row">-->
+                <!--    <div class="col-md-12">-->
+                <!--        <div class="col-md-12">-->
+                <!--            <h4 class="text-dark text-uppercase bold"><?php echo htmlspecialchars(_l('Widget')).': '.htmlspecialchars($team_daily_report_widget['widget_name']); ?></h4>-->
+                <!--            <p class="text-dark text-uppercase bold"><?php echo implode(' | ', $widget_detail) ?></p>-->
+                <!--        </div>-->
+                <!--        <div class="clearfix"></div>-->
+                <!--        <br>-->
+                <!--        <hr class="mtop15" />-->
+                <!--    </div>-->
+                <!--    <div class="col-md-12">-->
+                <!--        <table class="table table-team_daily_report_widget-<?php echo htmlspecialchars($team_daily_report_widget['id']); ?> dt-table">-->
+                <!--            <thead>-->
+                <!--            <th><?php echo htmlspecialchars(_l('staff')); ?></th>-->
+                <!--            <th><?php echo htmlspecialchars(_l('total_closing')); ?></th>-->
+                <!--            <th><?php echo htmlspecialchars(_l('gross')); ?></th>-->
+                <!--            <th><?php echo htmlspecialchars(_l('net')); ?></th>-->
+                <!--            </thead>-->
+                <!--            <tbody>-->
+                <!--            <tr>-->
+                <!--                <td></td>-->
+                <!--                <td></td>-->
+                <!--                <td></td>-->
+                <!--                <td></td>-->
+                <!--            </tr>-->
+                <!--            </tbody>-->
+                <!--        </table>-->
+                <!--        <br>-->
+                <!--        <hr class="mtop15" />-->
+                <!--    </div>-->
+                <!--</div>-->
             <?php } ?>
         </div>
     </div>

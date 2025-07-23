@@ -1,4 +1,4 @@
-<div class="widget" id="widget-<?php echo basename(__FILE__, ".php"); ?>"
+<!-- <div class="widget" id="widget-<?php echo basename(__FILE__, ".php"); ?>"
      data-name="<?php echo htmlspecialchars(_l('project_roadmap')); ?>">
     <link href="<?php echo module_dir_url('leads_report','assets/css/global.css'); ?>" rel="stylesheet" />
     <div class="panel_s user-data">
@@ -63,4 +63,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
