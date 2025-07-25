@@ -13,6 +13,16 @@ function app_init_admin_sidebar_menu_items()
         'icon'     => 'fa-regular fa-object-group',
         'badge'    => [],
     ]);
+    if (is_admin()) {
+    $CI->app_menu->add_sidebar_menu_item('custom-dashboard', [
+    'name'     => _l('custom_dashboard'),
+    'href'     => admin_url('custom_dashboard'),
+    'position' => 2.01, 
+    'icon'     => 'fa-solid fa-gauge-high',
+    'badge'    => [],
+]);
+}
+
 
     if (
         staff_can('view',  'customers')
