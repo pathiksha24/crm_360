@@ -100,7 +100,7 @@
 
     // Exclude certain services
     $this->db->where_not_in('l.service', [198, 168]);
-     $this->db->where_not_in('l.source', [5, 45]);
+    //$this->db->where_not_in('l.source', [5, 45]);// wlkin and reference
 
     $logs = $this->db->get()->result_array();
 
