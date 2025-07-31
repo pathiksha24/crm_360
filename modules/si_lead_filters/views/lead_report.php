@@ -332,8 +332,83 @@ $base_currency = $this->currencies_model->get_base_currency();
                 </div>
                 <div class="panel_s">
                     <div class="panel-body">
-                        <div class="panel-table-full">
+                         <div class="panel-table-full">
+                           
+                                <a href="#" data-toggle="modal" data-table=".table-si-leads"
+                                data-target="#leads_bulk_actions"
+                                class="bulk-actions-btn table-btn" style="display: none;"><?php echo _l('bulk_actions'); ?></a>
+
+
                             <?php $this->load->view('table_html', ['bulk_actions' => false, 'hide_columns' => $hide_columns, 'perfex_version' => $perfex_version]); ?>
+
+
+                            
+                            <div class="modal fade bulk_actions" id="leads_bulk_actions" tabindex="-1" role="dialog">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title"><?php echo _l('bulk_actions'); ?></h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <?php if (has_permission('leads', '', 'delete')) { ?>
+                                        <div class="checkbox checkbox-danger">
+                                        <input type="checkbox" name="mass_delete" id="mass_delete">
+                                        <label for="mass_delete"><?php echo _l('mass_delete'); ?></label>
+                                        </div>
+                                        <hr class="mass_delete_separator"/>
+                                        <?php } ?>
+                                        <div id="bulk_change">
+                                              <div class="form-group">
+                                                                <div class="checkbox checkbox-primary checkbox-inline">
+                                                                    <input type="checkbox" name="leads_bulk_mark_lost"
+                                                                           id="leads_bulk_mark_lost" value="1">
+                                                                    <label for="leads_bulk_mark_lost">
+                                                                        <?php echo _l('lead_mark_as_lost'); ?>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                        <?php
+                                            echo render_select('move_to_status_leads_bulk', $lead_statuses, ['id', 'name'], 'ticket_single_change_status');
+                                            echo render_select('move_to_source_leads_bulk', $lead_sources, ['id', 'name'], 'lead_source');
+                                            echo render_select('move_to_service_leads_bulk', $services, ['id', 'name'], 'lead_service');
+                                               echo render_select('move_to_language_leads_bulk', $languages, ['id', 'name'], 'lead_language');
+                                            echo render_datetime_input('leads_bulk_last_contact', 'leads_dt_last_contact');
+                                            echo render_select('assign_to_leads_bulk', $members, ['staffid', ['firstname', 'lastname']], 'leads_dt_assigned');
+                                        ?>
+                                        <div class="form-group">
+                                            <?php echo '<p><b><i class="fa fa-tag" aria-hidden="true"></i> ' . _l('tags') . ':</b></p>'; ?>
+                                            <input type="text" class="tagsinput" id="tags_bulk"
+                                             name="tags_bulk" value="" data-role="tagsinput">
+                                        </div>
+                                        <hr/>
+                                          <div class="form-group no-mbot">
+                                                                <div class="radio radio-primary radio-inline">
+                                                                    <input type="radio" name="leads_bulk_visibility"
+                                                                           id="leads_bulk_public" value="public">
+                                                                    <label for="leads_bulk_public">
+                                                                        <?php echo _l('lead_public'); ?>
+                                                                    </label>
+                                                                </div>
+                                                                <div class="radio radio-primary radio-inline">
+                                                                    <input type="radio" name="leads_bulk_visibility"
+                                                                           id="leads_bulk_private" value="private">
+                                                                    <label for="leads_bulk_private">
+                                                                        <?php echo _l('private'); ?>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo _l('close'); ?></button>
+                                        <a href="#" class="btn btn-primary"
+                                        onclick="leads_bulk_action(this); return false;"><?php echo _l('confirm'); ?></a>
+                                    </div>
+                                    </div>
+                                </div>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -383,5 +458,79 @@ $base_currency = $this->currencies_model->get_base_currency();
             });
         }, 300);
     }
+     function leads_bulk_action(event) {
+        // let table_leads = $("table.table-leads_new");
+        let table_leads = $("table.table-si-leads");
+
+        if (confirm_delete()) {
+            var mass_delete = $("#mass_delete").prop("checked");
+            var ids = [];
+            var data = {};
+            if (mass_delete == false || typeof mass_delete == "undefined") {
+                data.lost = $("#leads_bulk_mark_lost").prop("checked");
+                data.status = $("#move_to_status_leads_bulk").val();
+                data.service = $("#move_to_service_leads_bulk").val();
+                data.language = $("#move_to_language_leads_bulk").val();
+                data.assigned = $("#assign_to_leads_bulk").val();
+                data.source = $("#move_to_source_leads_bulk").val();
+                data.last_contact = $("#leads_bulk_last_contact").val();
+                data.tags = $("#tags_bulk").tagit("assignedTags");
+                data.visibility = $('input[name="leads_bulk_visibility"]:checked').val();
+
+                data.assigned = typeof data.assigned == "undefined" ? "" : data.assigned;
+                data.visibility =
+                    typeof data.visibility == "undefined" ? "" : data.visibility;
+
+                if (
+                    data.status === "" &&
+                    data.lost === false &&
+                    data.assigned === "" &&
+                    data.source === "" &&
+                    data.service === "" &&
+                    data.language === "" &&
+                    data.last_contact === "" &&
+                    data.tags.length == 0 &&
+                    data.visibility === ""
+                ) {
+                    return;
+                }
+            } else {
+                data.mass_delete = true;
+            }
+            var rows = table_leads.find("tbody tr");
+            $.each(rows, function () {
+                var checkbox = $($(this).find("td").eq(0)).find("input");
+                if (checkbox.prop("checked") === true) {
+                    ids.push(checkbox.val());
+                }
+            });
+            data.ids = ids;
+            $(event).addClass("disabled");
+            setTimeout(function () {
+                $.post(admin_url + "leads_customization/admin_leads/bulk_action", data)
+                    .done(function () {
+                        window.location.reload();
+                    })
+                    .fail(function (data) {
+                        $("#lead-modal").modal("hide");
+                        alert_float("danger", data.responseText);
+                    });
+            }, 200);
+        }
+    }
+
+
+     $('#leads_bulk_mark_lost').on('change', function () {
+            $('#move_to_status_leads_bulk').prop('disabled', $(this).prop('checked') == true);
+            $('#move_to_status_leads_bulk').selectpicker('refresh')
+        });
+        $('#move_to_status_leads_bulk').on('change', function () {
+            if ($(this).selectpicker('val') != '') {
+                $('#leads_bulk_mark_lost').prop('disabled', true);
+                $('#leads_bulk_mark_lost').prop('checked', false);
+            } else {
+                $('#leads_bulk_mark_lost').prop('disabled', false);
+            }
+        });
 </script>
 
