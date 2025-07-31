@@ -90,6 +90,13 @@ $table_data=array_merge($table_data, [
 		'name'     => _l('tags'),
 		'th_attrs' => 	['class' => isset($hide_columns) && in_array('tags',$hide_columns) ? $hide_class : ''],
 	],
+	[
+		'name'     => _l('lead_notes'), // Or just 'Notes' if no language key
+		'th_attrs' => ['class' => ''],
+	],
+
+
+
 ]);
 $table_data = hooks()->apply_filters('si_leads_table_columns', $table_data);
 render_datatable($table_data, isset($class) ?  $class : 'si-leads scroll-responsive', ['number-index-1'], [

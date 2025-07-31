@@ -66,6 +66,13 @@ $aColumns = array_merge($aColumns, [
     'firstname as assigned_firstname',
 
 	'(SELECT GROUP_CONCAT(name SEPARATOR ",") FROM ' . db_prefix() . 'taggables JOIN ' . db_prefix() . 'tags ON ' . db_prefix() . 'taggables.tag_id = ' . db_prefix() . 'tags.id WHERE rel_id = ' . db_prefix() . 'leads.id and rel_type="lead" ORDER by tag_order ASC LIMIT 1) as tags',
+    '(SELECT GROUP_CONCAT(CONCAT(@rownum:=@rownum+1, ") ", description) SEPARATOR "\n")
+  FROM (SELECT @rownum:=0) AS r, ' . db_prefix() . 'notes 
+  WHERE rel_id = ' . db_prefix() . 'leads.id AND rel_type = "lead"
+  ORDER BY dateadded ASC
+) as notes',
+
+
 
     
 
@@ -626,6 +633,8 @@ foreach ($rResult as $aRow) {
 	
 
 	$row[] = render_tags($aRow['tags']);
+    $row[] = $aRow['notes'];
+
 
 
 
