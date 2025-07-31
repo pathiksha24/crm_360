@@ -397,6 +397,11 @@
                                                 'th_attrs' => ['data-type' => $field['type'], 'data-custom-field' => 1],
                                             ]);
                                         }
+                                        $table_data[] = [
+                                        'name' => _l('lead_notes'),
+                                        'th_attrs' => ['class' => 'toggleable', 'id' => 'th-lead-notes'],
+                                    ];
+
                                         $table_data = hooks()->apply_filters('leads_table_columns', $table_data);
                                         ?>
                                         <div class="panel-table-full">

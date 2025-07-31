@@ -32,6 +32,10 @@ $aColumns = array_merge($aColumns, ['company',
     'lastcontact',
     'changeddate',
     'dateadded',
+'(SELECT GROUP_CONCAT(CONCAT(@rownum:=@rownum+1, ") ", description) SEPARATOR "\n") 
+  FROM (SELECT @rownum:=0) r, ' . db_prefix() . 'notes 
+  WHERE rel_type = "lead" AND rel_id = ' . db_prefix() . 'leads.id) as lead_notes',
+
 ]);
 
 $sIndexColumn = 'id';
@@ -297,6 +301,9 @@ foreach ($rResult as $aRow) {
     foreach ($customFieldsColumns as $customFieldColumn) {
         $row[] = (strpos($customFieldColumn, 'date_picker_') !== false ? _d($aRow[$customFieldColumn]) : $aRow[$customFieldColumn]);
     }
+    $row[] = nl2br($aRow['lead_notes'] ?? '');
+
+
 
     $row['DT_RowId'] = 'lead_' . $aRow['id'];
 
