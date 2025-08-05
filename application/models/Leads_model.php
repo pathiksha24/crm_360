@@ -1245,4 +1245,36 @@ class Leads_model extends App_Model
 
         return $kanBan->get();
     }
+
+
+public function get_uncontacted_leads($team_leader_id) {
+    $team_members_map = [
+        1   => [80, 16, 83, 82, 92],
+        73  => [107, 63, 97, 177,81],
+        159 => [71, 108, 79, 198],
+        160 => [53, 102, 44, 142, 60],
+        78  => [62, 69, 9, 27,25, 103],
+        94  => [5, 86, 65, 8, 68],
+        87  => [15, 93, 29, 202, 175, 21],
+    //58  => [17, 93, 29, 202, 175, 21],
+    ];
+
+    if (!isset($team_members_map[$team_leader_id])) {
+        return [];
+    }
+
+    $team_member_ids = implode(',', $team_members_map[$team_leader_id]);
+
+    $sql = "
+        SELECT id
+        FROM tblleads
+        WHERE assigned IN ($team_member_ids)
+          AND status = 2
+          AND last_status_change IS NULL
+          AND TIMESTAMPDIFF(MINUTE, dateadded, NOW()) > 30
+    ";
+
+    return $this->db->query($sql)->result_array();
+}
+
 }

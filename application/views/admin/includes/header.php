@@ -1,3 +1,29 @@
+
+<style>
+/* Force solid orange background and white text for warning toasts */
+.toast-warning {
+    background-color: #f97316 !important;  /* Bright orange */
+    color: #ffffff !important;            /* White text */
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    opacity: 1 !important;
+}
+
+/* Optional enhancements for clean layout */
+.toast-warning .toast-title {
+    font-weight: bold;
+}
+.toast-warning .toast-message {
+    font-size: 14px;
+    line-height: 1.4;
+}
+.toast-warning .toast-close-button {
+    color: #ffffff !important;
+}
+</style>
+
+
+
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <div id="header">
     <button type="button"
@@ -167,9 +193,77 @@
                 </div>
             </div>
 
+
             <ul class="nav navbar-nav navbar-right -tw-mt-px">
                 <?php do_action_deprecated('after_render_top_search', [], '3.0.0', 'admin_navbar_start'); ?>
                 <?php hooks()->do_action('admin_navbar_start'); ?>
+                <!-- //notification team leader uncontacted starts -->
+            <?php
+            $team_leaders = [1, 73, 159, 160, 78, 94, 87, 58];
+
+            if (in_array(get_staff_user_id(), $team_leaders)) {
+                $CI = &get_instance();
+                $CI->load->model('leads_model');
+                $pendingLeads = $CI->leads_model->get_uncontacted_leads(get_staff_user_id());
+
+                if (!empty($pendingLeads)) {
+                    ?>
+                    <!-- Header Dropdown -->
+                    <li class="dropdown icon header-uncontacted-leads" data-toggle="tooltip" title="Pending Leads">
+                        <a href="#" class="dropdown-toggle tw-flex tw-items-center tw-gap-1" data-toggle="dropdown" aria-expanded="false" style="color: #dc2626;">
+                            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                            <span class="tw-text-sm">Pending Leads</span>
+                        </a>
+                    <ul class="dropdown-menu animated fadeIn" style="min-width: 200px; padding: 8px 12px;">
+                <li class="dropdown-header" style="font-weight: 600; color: #dc2626;">
+                    <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Pending Leads
+                </li>
+                <hr style="margin: 6px 0;">
+                <?php foreach ($pendingLeads as $lead) { ?>
+                    <li style="margin: 4px 0; font-size: 13px;">
+                        <a href="<?= admin_url('leads/index/' . $lead['id']); ?>" target="_blank" style="color: #333; display: block;">
+                            Lead #<?= htmlspecialchars($lead['id']); ?>
+                        </a>
+                    </li>
+                <?php } ?>
+                <?php if (empty($pendingLeads)) { ?>
+                    <li style="font-size: 13px; color: #888;">No pending leads found.</li>
+                <?php } ?>
+            </ul>
+
+                    </li>
+
+                    <!-- jQuery (required) -->
+                    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                    <!-- Toastr CSS + JS -->
+                    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+                    <!-- Bootstrap JS for dropdown -->
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+
+                    <!-- Toast Notification -->
+                    <script>
+                    $(function () {
+                        toastr.warning(
+                            "<?= count($pendingLeads); ?> leads assigned to your team today are still in 'New' status for over 30 minutes without follow-up.",
+                            "Pending Leads Alert", {
+                                timeOut: 10000,
+                                closeButton: true,
+                                progressBar: true,
+                                positionClass: "toast-top-right"
+                            }
+                        );
+                    });
+                    </script>
+                    <?php
+                }
+            }
+            ?>
+
+
+            <!-- //notification team leader uncontacted ends -->
+
                 <?php if (staff_can('view', 'settings')) { ?>
                 <li>
                     <a
@@ -239,6 +333,9 @@
                     data-placement="bottom">
                     <?php $this->load->view('admin/includes/notifications'); ?>
                 </li>
+
+
+
 
                 <?php hooks()->do_action('admin_navbar_end'); ?>
             </ul>
