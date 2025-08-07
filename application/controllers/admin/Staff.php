@@ -28,10 +28,14 @@ class Staff extends AdminController
         if (staff_cant('view', 'staff')) {
             access_denied('staff');
         }
-        //markting team view account option only for anju(17) & call center5(58)
-        if ($id == 228 && !in_array(get_staff_user_id(), [58, 17])) {
+        //markting team view account, julin , gopi acc  option only for anju(17) & call center5(58)
+        // if ($id == 228 && !in_array(get_staff_user_id(), [58, 17])) {
+        //     access_denied('staff'); 
+        // }
+        if (in_array($id, [228, 174, 210]) && !in_array(get_staff_user_id(), [58, 17])) {
             access_denied('staff'); 
         }
+
         hooks()->do_action('staff_member_edit_view_profile', $id);
 
         $this->load->model('departments_model');
