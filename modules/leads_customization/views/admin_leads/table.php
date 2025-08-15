@@ -192,10 +192,11 @@ foreach ($rResult as $aRow) {
     }
 
 
-     // ⛔ Hide Anju's leads from Quality team and ahamad khalifa (ID 77)
-   if (in_array(get_staff_user_id(), [77, 161]) && $aRow['assigned'] == 17) {
-    continue;
-   }
+      // ✅ Restrict visibility: only staff 17 & 58 can see leads assigned to staff 17
+      //only anju and call center 5 can see leads assignedd to anju(17)
+    if ($aRow['assigned'] == 17 && !in_array(get_staff_user_id(), [17, 58])) {
+        continue;
+    }
 
 
     $row = [];

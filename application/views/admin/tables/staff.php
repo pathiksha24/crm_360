@@ -35,6 +35,21 @@ if (count($custom_fields) > 4) {
 
 $where = hooks()->apply_filters('staff_table_sql_where', []);
 
+// marketing team , julin , gopi, anju account access only for call center and anju- starts
+$restrictedStaffIds = [228, 210, 174, 17];
+
+if (get_staff_user_id() != 17) {
+    $CI =& get_instance();
+    $CI->db->select('role')->where('staffid', get_staff_user_id());
+    $currentRoleId = $CI->db->get(db_prefix() . 'staff')->row()->role;
+
+    if ($currentRoleId != 5) {
+        $where[] = 'AND ' . db_prefix() . 'staff.staffid NOT IN (' . implode(',', $restrictedStaffIds) . ')';
+    }
+}
+// marketing team , julin , gopi, anju account access only for call center and anju -ends
+
+
 $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, [
     'profile_image',
     'lastname',
