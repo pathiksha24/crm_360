@@ -230,11 +230,7 @@
                                     <div class="clearfix"></div>
 
                                     <div class="col-md-12">
-                                      <?php
-                                        $current_id = (int) get_staff_user_id();   // <-- cast to int
-                                        $blocked_bulk_staff = [54, 56];
-                                        $can_see_bulk = !in_array($current_id, $blocked_bulk_staff, true);
-                                        ?><?php if ($can_see_bulk): ?>
+                                     
                                         <a href="#" data-toggle="modal" data-table=".table-leads_new"
                                            data-target="#leads_bulk_actions"
                                            class="hide bulk-actions-btn table-btn"><?php echo _l('bulk_actions'); ?></a>
@@ -311,7 +307,6 @@
                                             </div>
                                             <!-- /.modal-dialog -->
                                         </div>
-                                        <?php endif; ?>
                                         <!-- /.modal -->
                                         <?php
 

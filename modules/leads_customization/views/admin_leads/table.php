@@ -221,17 +221,10 @@ foreach ($rResult as $aRow) {
         $nameRow .= ' | <a href="' . admin_url('leads/index/' . $aRow['id'] . '?edit=true') . '" onclick="init_lead(' . $aRow['id'] . ', true);return false;">' . _l('edit') . '</a>';
     }
 
-    // if ($aRow['addedfrom'] == get_staff_user_id() || $has_permission_delete) {
-    //     $nameRow .= ' | <a href="' . admin_url('leads/delete/' . $aRow['id']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
-    // }
-    //delete access from polulomy and call cener 1 remove 
-            $blocked_delete_staff = [54, 56]; // example
-        if (
-            ($aRow['addedfrom'] == get_staff_user_id() || $has_permission_delete) && !in_array((int) get_staff_user_id(), $blocked_delete_staff, true)
-        ) {
-            $nameRow .= ' | <a href="' . admin_url('leads/delete/' . $aRow['id']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
-        }
-
+    if ($aRow['addedfrom'] == get_staff_user_id() || $has_permission_delete) {
+        $nameRow .= ' | <a href="' . admin_url('leads/delete/' . $aRow['id']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
+    }
+  
     $nameRow .= '</div>';
 
 
