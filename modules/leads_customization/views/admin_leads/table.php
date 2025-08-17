@@ -181,6 +181,29 @@ $additionalColumns = hooks()->apply_filters('leads_table_additional_columns_sql'
     'zip',
 ]);
 
+/* ---------- Country code starts-with override for whatsapp_number & phonenumber ---------- */
+$globalSearch = $this->ci->input->post('search');
+$globalTerm   = isset($globalSearch['value']) ? trim($globalSearch['value']) : '';
+
+if ($globalTerm !== '' && preg_match('/^\+?\d{2,3}$/', $globalTerm)) {
+    // Normalize +91 -> 91
+    $cc  = ltrim($globalTerm, '+');
+    $esc = $this->ci->db->escape_like_str($cc);
+
+    // Match numbers that START with the country code (with or without '+')
+    $clauses = [];
+    $clauses[] = db_prefix() . 'leads.phonenumber LIKE "' . $esc . '%"';
+    $clauses[] = db_prefix() . 'leads.phonenumber LIKE "+' . $esc . '%"';
+    $clauses[] = 'whatsapp_number LIKE "' . $esc . '%"';
+    $clauses[] = 'whatsapp_number LIKE "+' . $esc . '%"';
+
+    $where[] = 'AND (' . implode(' OR ', $clauses) . ')';
+
+    // Disable default global fuzzy search so 'contains' matches (e.g., 971) don't leak in
+    $_POST['search']['value'] = '';
+}
+/* ---------- /override ---------- */
+
 $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, $additionalColumns);
 
 $output  = $result['output'];
@@ -224,7 +247,14 @@ foreach ($rResult as $aRow) {
     if ($aRow['addedfrom'] == get_staff_user_id() || $has_permission_delete) {
         $nameRow .= ' | <a href="' . admin_url('leads/delete/' . $aRow['id']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
     }
-  
+    //delete access from polulomy and call cener 1 remove 
+        //     $blocked_delete_staff = [54, 56]; // example
+        // if (
+        //     ($aRow['addedfrom'] == get_staff_user_id() || $has_permission_delete) && !in_array((int) get_staff_user_id(), $blocked_delete_staff, true)
+        // ) {
+        //     $nameRow .= ' | <a href="' . admin_url('leads/delete/' . $aRow['id']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
+        // }
+
     $nameRow .= '</div>';
 
 
