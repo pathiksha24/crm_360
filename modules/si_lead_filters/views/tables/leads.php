@@ -423,7 +423,16 @@ $additionalColumns = hooks()->apply_filters('leads_table_additional_columns_sql'
 
 ]);
 
+// 1) If user cannot access unassigned leads, exclude them
+if (!has_access_to_unassigned_leads()) {
+    $where[] = 'AND ' . db_prefix() . 'leads.assigned <> 0';
+}
 
+// 2) Anju’s leads visibility (assigned = 17); only whitelisted staff can see
+$allowed_for_anju = [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56]; // keep 77 OUT if Quality should not see
+if (!in_array((int) get_staff_user_id(), $allowed_for_anju, true)) {
+    $where[] = 'AND ' . db_prefix() . 'leads.assigned <> 17';
+}
 
 $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, $additionalColumns);
 
@@ -438,9 +447,9 @@ $rResult = $result['rResult'];
 foreach ($rResult as $aRow) {
 
 // call center staffs, poluolny, call center 1  and anju can see the leads which is assigned to anju
-     if ($aRow['assigned'] == 17 && !in_array(get_staff_user_id(), [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56])) {
-        continue;
-    }
+    //  if ($aRow['assigned'] == 17 && !in_array(get_staff_user_id(), [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56])) {
+    //     continue;
+    // }
 
     $row = [];
 
