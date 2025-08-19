@@ -437,8 +437,8 @@ $rResult = $result['rResult'];
 
 foreach ($rResult as $aRow) {
 
-// call center and anju can see the leads which is assigned to anju
-     if ($aRow['assigned'] == 17 && !in_array(get_staff_user_id(), [17, 58])) {
+// call center staffs, poluolny, call center 1  and anju can see the leads which is assigned to anju
+     if ($aRow['assigned'] == 17 && !in_array(get_staff_user_id(), [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56])) {
         continue;
     }
 
