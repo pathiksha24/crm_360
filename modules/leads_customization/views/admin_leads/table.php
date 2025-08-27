@@ -184,7 +184,7 @@ $additionalColumns = hooks()->apply_filters('leads_table_additional_columns_sql'
 
 
 
-// 1) If user cannot access unassigned leads, exclude them
+//anju , gopi, marketing team, juli assigned lead hiiden for all except cc staffs, pololmy , call center 1 , call center 5 , anju
 if (!has_access_to_unassigned_leads()) {
     $where[] = 'AND ' . db_prefix() . 'leads.assigned <> 0';
 }
@@ -192,7 +192,7 @@ if (!has_access_to_unassigned_leads()) {
 // 2) Anju’s leads visibility (assigned = 17); only whitelisted staff can see
 $allowed_for_anju = [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56]; // keep 77 OUT if Quality should not see
 if (!in_array((int) get_staff_user_id(), $allowed_for_anju, true)) {
-    $where[] = 'AND ' . db_prefix() . 'leads.assigned <> 17';
+     $where[] = 'AND ' . db_prefix() . 'leads.assigned NOT IN (17,210,174,228)';
 }
 
 /* ---------- Country code starts-with override for whatsapp_number & phonenumber ---------- */
