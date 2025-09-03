@@ -2,10 +2,24 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 $hide_class = 'not_visible not-export';
 $table_data = [
+	// [
+	// 	'name'     => '<span class="hide"> - </span><div class="checkbox mass_select_all_wrap">
+	// <input type="checkbox" id="mass_select_all" data-to-table="si_pm_category"><label></label>
+	// </div>',
+	// 	'th_attrs' => ['class' => ((isset($bulk_actions) && $bulk_actions) ? '' : $hide_class)],
+	// ],
 	[
-		'name'     => '<span class="hide"> - </span><div class="checkbox mass_select_all_wrap"><input type="checkbox" id="mass_select_all" data-to-table="si_pm_category"><label></label></div>',
-		'th_attrs' => ['class' => ((isset($bulk_actions) && $bulk_actions) ? '' : $hide_class)],
-	],
+  'name' =>
+    '<span class="hide"> - </span>
+     <div class="checkbox mass_select_all_wrap">
+       <input type="checkbox" id="mass_select_all" data-to-table="si-leads"><label></label>
+     </div>',
+  'th_attrs' => [
+    'class' => ((isset($bulk_actions) && $bulk_actions) ? 'not-sortable' : ''),
+    'data-orderable' => 'false',
+  ],
+],
+
 	[
 		'name'		=> _l('the_number_sign'),
 		'th_attrs'	=> ['class' => '']
