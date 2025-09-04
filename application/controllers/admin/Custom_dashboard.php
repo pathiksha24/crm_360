@@ -49,16 +49,18 @@
         78  => 'Ilyas',
         94  => 'Khuwaja',
         87  => 'Ziya',
+        41  => 'Farah',
     ];
 
     $team_members = [
         1   => [80, 16, 83, 82, 92],
-        73  => [107, 63, 97, 177,81],
-        159 => [71, 108, 79, 198],
-        160 => [53, 102, 44, 142, 60],
+       // 73  => [107, 63, 97, 177,81],
+        159 => [107, 7, 177, 108, 71, 97],
+        160 => [53, 60, 142, 102, 63],
         78  => [62, 69, 9, 27,25, 103],
         94  => [5, 86, 65, 8, 68],
         87  => [15, 93, 29, 202, 175, 21],
+        41  => [165],
     ];
 
     $all_staff_ids = array_merge(...array_values($team_members));
@@ -84,7 +86,8 @@
     $this->db->join('tblleads l', 'la.leadid = l.id');
     $this->db->where('la.description', 'not_lead_activity_assigned_to');
      // Include only these staff IDs
-   $this->db->where_in('la.staffid', [59, 55, 14, 72, 163, 216, 34, 20, 214, 225]);
+   //$this->db->where_in('la.staffid', [59, 55, 14, 72, 163, 216, 34, 20, 214, 225]);
+    $this->db->where_in('la.staffid', [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234,229]);
     if ($from_date) {
         // Use strict date match (e.g., only 2025-07-15)
         $this->db->where('DATE(la.date)', $from_date);
