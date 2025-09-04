@@ -2,7 +2,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 $CI = &get_instance();
-$callcenter_ids = [59, 55, 14, 72, 163, 216, 34, 20, 214, 225];
+$callcenter_ids =[194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234,229];
 
 $period = $CI->input->get('months-report') ?? 'today';
 if ($period === '') {
