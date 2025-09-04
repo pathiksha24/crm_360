@@ -429,7 +429,7 @@ if (!has_access_to_unassigned_leads()) {
     $where[] = 'AND ' . db_prefix() . 'leads.assigned <> 0';
 }
 
-$allowed_for_anju = [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56]; // keep 77 OUT if Quality should not see
+$allowed_for_anju = [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56,178]; // keep 77 OUT if Quality should not see
 if (!in_array((int) get_staff_user_id(), $allowed_for_anju, true)) {
     $where[] = 'AND ' . db_prefix() . 'leads.assigned NOT IN (17,210,174,228)';
 }
