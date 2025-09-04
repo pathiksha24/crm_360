@@ -36,7 +36,7 @@ function has_access_to_unassigned_leads($staff_id = '')
 {
     if ($staff_id == '') $staff_id = get_staff_user_id();
      // Give access to staff ID 1833 explicitly(hihab access to not assigned staff list->leads)
-         if (in_array($staff_id, [183, 59, 163, 216, 34, 214, 72, 20, 141, 194,55])) {
+         if (in_array($staff_id, [183, 59, 163, 216, 34, 214, 72, 20, 141, 194,55,178])) {
         return true;
          }
     $leads_unassigned_admins = json_decode(get_option('leads_unassigned_admins'));
