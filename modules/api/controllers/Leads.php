@@ -317,7 +317,14 @@ class Leads extends REST_Controller {
 
 public function data_post()
 {
-    
+    //body , raw, json, 
+    //json format accets starts
+    $json = json_decode(file_get_contents("php://input"), true);
+    if (is_array($json) && !empty($json)) {
+        $_POST = $json; // populate $_POST so your existing $this->input->post() calls work
+    }
+    //json format accets ends
+
 
     $this->form_validation->set_rules('name', 'Lead Name', 'trim|required|max_length[600]', array('is_unique' => 'This %s already exists please enter another Lead Name'));
     $this->form_validation->set_rules('source', 'Source', 'trim|required', array('is_unique' => 'This %s already exists please enter another Lead source'));
@@ -342,7 +349,11 @@ public function data_post()
         if ($service == '' || $service == null) {
             $service = 'Not Available';
         }
-
+$normalize = function ($val) {
+    $val = preg_replace('/[^0-9]/', '', (string)$val); // keep only digits
+    $val = preg_replace('/^(00|0)+/', '', $val);        // strip leading 0/00
+    return $val ?: null;
+};
         $insert_data = [
             'name' => $this->input->post('name', TRUE),
             'source' => $this->input->post('source', TRUE),
@@ -364,6 +375,7 @@ public function data_post()
             'description' => $this->Api_model->value($this->input->post('description', TRUE)),
             'custom_contact_date' => $this->Api_model->value($this->input->post('custom_contact_date', TRUE)),
             'is_public' => $this->Api_model->value($this->input->post('is_public', TRUE)),
+             'whatsapp_number' => $normalize($this->Api_model->value($this->input->post('whatsapp_number', TRUE))), // ✅ works now
             'contacted_today' => $this->Api_model->value($this->input->post('contacted_today', TRUE))
         ];
 
