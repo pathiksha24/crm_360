@@ -13,7 +13,9 @@ $grand = ['other' => 0, 'setup' => 0, 'setup_eu' => 0, 'permit' => 0, 'total' =>
 ?>
 
 <div class="table-responsive">
-  <table class="table table-bordered text-center" style="border-collapse: collapse;">
+  <!-- <table class="table table-bordered text-center" style="border-collapse: collapse;"> -->
+    <table id="task-summary-table" class="table table-bordered text-center" style="border-collapse: collapse;">
+
     <thead style="background-color: #3A3A3A; color: white;">
       <tr>
         <th style="text-align:center;">Team Leader</th>
