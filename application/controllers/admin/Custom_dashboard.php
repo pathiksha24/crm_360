@@ -31,9 +31,7 @@
 
         $data['team_data'] = $this->build_team_data($from);
 
-        // Debug logging:
-        log_message('error', 'AJAX build_team_data() triggered for date: ' . $from);
-
+      
         $this->load->view('admin/custom_widgets/task_summary_table', $data);
     }
 
