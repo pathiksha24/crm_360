@@ -191,13 +191,23 @@ class Si_lead_filters extends AdminController
 		$data['lead_cities']  = $this->si_lead_filter_model->get_leads_city_list();
 		$data['lead_states']  = $this->si_lead_filter_model->get_leads_state_list();
 		$data['lead_zips']  = $this->si_lead_filter_model->get_leads_zip_list();
-		$data['members']  = $this->staff_model->get();
-        if (!is_admin() && is_team_leader()){
-            $this->db->select('*');
-            $where =  ['staff.team_leader' => get_staff_user_id()];
-            $this->db->where($where);
-            $data['members'] = $this->db->get(db_prefix() . 'staff')->result_array();
-        }
+		// $data['members']  = $this->staff_model->get();
+        // if (!is_admin() && is_team_leader()){
+        //     $this->db->select('*');
+        //     $where =  ['staff.team_leader' => get_staff_user_id()];
+        //     $this->db->where($where);
+        //     $data['members'] = $this->db->get(db_prefix() . 'staff')->result_array();
+        // }
+
+		//active staff only 
+		$data['members']  = $this->staff_model->get('', ['active' => 1]);
+		if (!is_admin() && is_team_leader()){
+		$data['members'] = $this->staff_model->get('', [
+		'active'      => 1,
+		'team_leader' => get_staff_user_id(),
+		]);
+		}
+		
 		$data['staff_id'] = $staff_id;
 		$data['saved_filter_name'] = $saved_filter_name;
 		$data['date_by'] = $date_by;
