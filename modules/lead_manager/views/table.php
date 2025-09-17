@@ -143,6 +143,23 @@ if(!is_admin()){
         array_push($where, 'AND (assigned =' . get_staff_user_id().')');
     }
 }
+
+// ---------------- anju , gopi , marketing team, julin leads assigned , visible only to allowed views staff starts ----------------
+$me = (int) get_staff_user_id();
+
+$protected_assignee_ids = [17, 210, 174, 228]; // leads assigned to these staff are protected
+$allowed_viewers        = [17, 58, 14, 59, 55, 216, 214, 72, 20, 34, 163, 54, 56, 178]; // only these can view them
+
+// If current user is NOT whitelisted, hide the protected-assignee leads
+if (!in_array($me, $allowed_viewers, true)) {
+    $where[] = 'AND ' . db_prefix() . 'leads.assigned NOT IN (' .
+               implode(',', array_map('intval', $protected_assignee_ids)) . ')';
+}
+// ---------------- anju , gopi , marketing team, julin leads assigned , visible only to allowed views staff end ----------------
+
+
+
+
 $aColumns = hooks()->apply_filters('leads_table_sql_columns', $aColumns);
 if (count($custom_fields) > 4) {
     @$this->ci->db->query('SET SQL_BIG_SELECTS=1');
