@@ -70,24 +70,47 @@ $base_currency = $this->currencies_model->get_base_currency();
                         <div class="_filters _hidden_inputs">
                             <div class="row mbot15">
                                 <?php if (is_admin()) { ?>
-                                    <div class="col-md-2 border-right">
+                                    <!-- <div class="col-md-2 border-right">
                                         <label for="rel_type"
-                                               class="control-label"><?php echo _l('team_leader'); ?></label>
-                                        <?php echo render_select('team_leader', $team_leaders, array('staffid', array('firstname', 'lastname')), '', $selected_team_leader, array('data-none-selected-text' => _l('team_leader'), 'onchange' => "dt_custom_view(this.value,'.table-si-leads','team_leader'); return false;"), array(), 'no-margin'); ?>
+                                               class="control-label"></?php echo _l('team_leader'); ?></label>
+                                        </?php echo render_select('team_leader', $team_leaders, array('staffid', array('firstname', 'lastname')), '', $selected_team_leader, array('data-none-selected-text' => _l('team_leader'), 
+                                        'onchange' => "dt_custom_view(this.value,'.table-si-leads','team_leader'); return false;"), array(), 'no-margin'); ?>
+                                         </div> -->
+                                      <div class="col-md-2 border-right">
+                                        <label for="team_leader" class="control-label"><?php echo _l('team_leader'); ?></label>
+                                        <?php echo render_select( 'team_leader[]',$team_leaders,
+                                            array('staffid', array('firstname', 'lastname')),'', $selected_team_leader,
+                                         array('data-none-selected-text' => _l('team_leader'),
+                                            'multiple' => true,
+                                            'data-actions-box' => true,
+                                            'onchange' => "var v=$(this).val()||[]; dt_custom_view(v.join(','),'.table-si-leads','team_leader'); return false;"),
+                                            array(),'no-margin', '',false ); ?>
                                     </div>
                                 <?php } ?>
                                 <?php if (has_permission('leads', '', 'view')) { ?>
-                                    <div class="col-md-2 border-right">
+                                    <!-- <div class="col-md-2 border-right">
                                         <label for="rel_type"
-                                               class="control-label"><?php echo _l('staff_members'); ?></label>
-                                        <?php echo render_select('member', $members, array('staffid', array('firstname', 'lastname')), '', $staff_id, array('data-none-selected-text' => _l('all_staff_members'), 'onchange' => "dt_custom_view(this.value,'.table-si-leads','member'); return false;"), array(), 'no-margin'); ?>
+                                               class="control-label"></?php echo _l('staff_members'); ?></label>
+                                        </?php echo render_select('member', $members, array('staffid', array('firstname', 'lastname')), '', $staff_id, array('data-none-selected-text' => _l('all_staff_members'), 
+                                        'onchange' => "dt_custom_view(this.value,'.table-si-leads','member'); return false;"), array(), 'no-margin'); ?>
+                                    </div> -->
+                                    <div class="col-md-2 border-right">
+                                        <label for="member" class="control-label"><?php echo _l('staff_members'); ?></label>
+                                        <?php echo render_select('member[]', $members,
+                                            array('staffid', array('firstname', 'lastname')),'',$staff_id,
+                                            array('data-none-selected-text' => _l('all_staff_members'),'multiple' => true,'data-actions-box' => true, 'onchange' => "var v=$(this).val()||[]; dt_custom_view(v.join(','),'.table-si-leads','member'); return false;"),
+                                            array(),'no-margin',  '',false ); ?>
                                     </div>
                                 <?php } ?>
+
                                 <div class="col-md-2 text-center1 border-right">
                                     <label for="status" class="control-label"><?php echo _l('lead_status'); ?></label>
                                     <?php
-                                    echo render_select('status[]', $lead_statuses, array('id', 'name'), '', $statuses, array('data-width' => '100%', 'data-none-selected-text' => _l('leads_all'), 'multiple' => true, 'data-actions-box' => true, 'onchange' => "dt_custom_view(this.value,'.table-si-leads','status'); return false;"), array(), 'no-mbot', '', false); ?>
+                                    echo render_select('status[]', $lead_statuses, array('id', 'name'), '', $statuses, array('data-width' => '100%', 'data-none-selected-text' => _l('leads_all'),
+                                     'multiple' => true, 'data-actions-box' => true, 'onchange' => "dt_custom_view(this.value,'.table-si-leads','status'); return false;"), array(), 'no-mbot', '', false); ?>
                                 </div>
+
+
                                 <!--start sources select -->
                                 <div class="col-md-2  border-right">
                                     <label for="rel_type" class="control-label"><?php echo _l('lead_source'); ?></label>
@@ -373,7 +396,7 @@ $base_currency = $this->currencies_model->get_base_currency();
                                             echo render_select('move_to_status_leads_bulk', $lead_statuses, ['id', 'name'], 'ticket_single_change_status');
                                             echo render_select('move_to_source_leads_bulk', $lead_sources, ['id', 'name'], 'lead_source');
                                             echo render_select('move_to_service_leads_bulk', $services, ['id', 'name'], 'lead_service');
-                                               echo render_select('move_to_language_leads_bulk', $languages, ['id', 'name'], 'lead_language');
+                                            echo render_select('move_to_language_leads_bulk', $languages, ['id', 'name'], 'lead_language');
                                             echo render_datetime_input('leads_bulk_last_contact', 'leads_dt_last_contact');
                                             echo render_select('assign_to_leads_bulk', $members, ['staffid', ['firstname', 'lastname']], 'leads_dt_assigned');
                                         ?>

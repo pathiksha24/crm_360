@@ -129,12 +129,21 @@ if (!empty($has_notes) && is_admin()){
         array_push($where, 'AND ' . db_prefix() . 'leads.id NOT IN (SELECT rel_id FROM ' . db_prefix() . 'notes WHERE rel_type = "lead")');
     }
 }
+//si lead filter-> multi select for team leader option gven start
 
-if (is_admin()) {
-    if ($this->ci->input->post('team_leader')){
-        array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.$this->ci->input->post('team_leader'));
+// if (is_admin()) {
+//     if ($this->ci->input->post('team_leader')){
+//         array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.$this->ci->input->post('team_leader'));
+//     }
+// }
+if (is_admin() && $this->ci->input->post('team_leader')) {
+    $team_leaders = $this->ci->input->post('team_leader');
+    if (is_array($team_leaders) && count($team_leaders) > 0) {
+        array_push($where, 'AND ' . db_prefix() . 'staff.team_leader IN (' . implode(',', $team_leaders) . ')');
     }
 }
+//si lead filter-> multi select for team leader option gven end
+
 // if (is_team_leader()) {
 //     array_push($where, 'AND ' . db_prefix() . 'staff.team_leader = '.get_staff_user_id());
 // }
@@ -224,16 +233,25 @@ if(!$has_permission_view){
 	array_push($where, 'AND (assigned =' . $staff_id . ' OR addedfrom = ' . $staff_id . ' OR is_public = 1)');
 
 }
+////si lead filter-> multi select for staff option gven start
 
-elseif ($has_permission_view) {
+// elseif ($has_permission_view) {
 
-	if (is_numeric($staff_id)) {
+// 	if (is_numeric($staff_id)) {
 
-		array_push($where, 'AND assigned =',$staff_id);
+// 		array_push($where, 'AND assigned =',$staff_id);
 
-	}
+// 	}
 
+// }
+elseif ($has_permission_view && !empty($staff_id)) {
+    if (is_array($staff_id)) {
+        array_push($where, 'AND ' . db_prefix() . 'leads.assigned IN (' . implode(',', $staff_id) . ')');
+    } elseif (is_numeric($staff_id)) {
+        array_push($where, 'AND assigned = ' . $staff_id);
+    }
 }
+////si lead filter-> multi select for staff option given end
 
 
 
