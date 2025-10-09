@@ -391,7 +391,35 @@ $normalize = function ($val) {
             $insert_data['tags'] = '';
         }
 
+// >>> Force Service Type for Meta API (63) + Business Set Up (127) <<<
+    $WHATSAPP_API_SOURCE_ID   = 70;   // Meta API
+    $BUS_SETUP_SERVICE_ID = 127;  // Business Set Up
+    $SERVICE_TYPE_FIELDID = 5;    // Custom field ID for "Service Type"
 
+    if ((int)$insert_data['source'] === $WHATSAPP_API_SOURCE_ID
+        && (int)$insert_data['service'] === $BUS_SETUP_SERVICE_ID) {
+
+        if (!isset($insert_data['custom_fields']) || !is_array($insert_data['custom_fields'])) {
+            $insert_data['custom_fields'] = [];
+        }
+        // Must match DB option text exactly
+        $insert_data['custom_fields'][$SERVICE_TYPE_FIELDID] = 'Quickplus Business Setup Services';
+    }
+    // <<< End Service Type rule >>>
+
+    // --- Ensure the custom field reaches handle_custom_fields_post() ---
+    $cf = $this->input->post('custom_fields', TRUE);
+    if (!is_array($cf)) { $cf = []; }
+
+    if ((int)$insert_data['source'] === $WHATSAPP_API_SOURCE_ID
+        && (int)$insert_data['service'] === $BUS_SETUP_SERVICE_ID) {
+        $cf[$SERVICE_TYPE_FIELDID] = 'Quickplus Business Setup Services';
+    }
+
+    // Mirror into BOTH places
+    $insert_data['custom_fields'] = $cf;     // belt
+    $_POST['custom_fields']       = $cf;     // suspenders
+    // -------------------------------------------------------------------
         $phonenumber = $this->Api_model->value($this->input->post('phonenumber', TRUE));
  
             // Normalize: remove +, spaces, leading 00, etc.
@@ -424,6 +452,33 @@ $normalize = function ($val) {
         $output = $this->leads_model->add($insert_data);
 
         if ($output > 0 && !empty($output)) {
+
+    // --- SAFETY NET: make sure Service Type value is saved in DB ---
+    if ((int)$insert_data['source'] === 70 && (int)$insert_data['service'] === 127) {
+        $SERVICE_TYPE_FIELDID = 5;
+        $val = 'Quickplus Business Setup Services';
+        $cfv = db_prefix().'customfieldsvalues';
+
+        $exists = $this->db->where([
+                'relid'   => $output,
+                'fieldid' => $SERVICE_TYPE_FIELDID,
+                'fieldto' => 'leads',
+        ])->get($cfv)->row();
+
+        if ($exists) {
+            $this->db->where('id', $exists->id)->update($cfv, ['value' => $val]);
+        } else {
+            $this->db->insert($cfv, [
+                'relid'   => $output,
+                'fieldid' => $SERVICE_TYPE_FIELDID,
+                'fieldto' => 'leads',
+                'value'   => $val,
+            ]);
+        }
+    }
+    // --- end safety net ---
+
+
             // success
             $this->handle_lead_attachments_array($output);
             $message = array(
