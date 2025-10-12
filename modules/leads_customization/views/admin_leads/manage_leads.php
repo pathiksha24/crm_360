@@ -1,7 +1,5 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php init_head(); ?>
-
-<?php $leadcolumnvisible = in_array((int)get_staff_user_id(), [58, 17, 174, 178, 56, 54], true); ?>
 <div id="wrapper">
     <div class="content">
         <div class="row">
@@ -374,11 +372,10 @@
                                             'name' => _l('whatsapp_number'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-whatsapp_number'],
                                         ];
-                                        if ($leadcolumnvisible) {
-                                            $_table_data[] = [
-                                                'name' => _l('dateassigned'),
-                                                'th_attrs' => ['class' => 'toggleable', 'id' => 'th-last-dateassigned'],
-                                            ];
+                                        $_table_data[] = [
+                                            'name' => _l('dateassigned'),
+                                            'th_attrs' => ['class' => 'toggleable', 'id' => 'th-last-dateassigned'],
+                                        ];
                                         $_table_data[] = [
                                             'name' => _l('leads_dt_last_contact'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-last-contact'],
@@ -387,7 +384,6 @@
                                             'name' => _l('changeddate'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-changeddate'],
                                         ];
-                                    }
                                         $_table_data[] = [
                                             'name' => _l('leads_dt_datecreated'),
                                             'th_attrs' => ['class' => 'date-created toggleable', 'id' => 'th-date-created'],

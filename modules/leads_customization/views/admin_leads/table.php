@@ -8,7 +8,6 @@ $has_permission_delete = has_permission('leads', '', 'delete');
 $custom_fields         = get_table_custom_fields('leads');
 $consentLeads          = get_option('gdpr_enable_consent_for_leads');
 $statuses              = $this->ci->leads_model->get_status();
-$leadcolumnvisible = in_array((int)get_staff_user_id(), [58, 17, 174, 178, 56, 54], true);
 
 $aColumns = [
     '1',
@@ -18,8 +17,7 @@ $aColumns = [
 if (is_gdpr() && $consentLeads == '1') {
     $aColumns[] = '1';
 }
-$aColumns = array_merge($aColumns, [
-    'company',
+$aColumns = array_merge($aColumns, ['company',
     db_prefix() . 'leads.email as email',
     db_prefix() . 'leads.phonenumber as phonenumber',
     'lead_value',
@@ -30,19 +28,16 @@ $aColumns = array_merge($aColumns, [
     db_prefix() . 'leads_services.name as service_name',
     db_prefix() . 'leads_languages.name as language_name',
     'whatsapp_number',
-    // 'dateassigned',  <-- remove this line
-    //'lastcontact',
-    // 'changeddate',
+    'dateassigned',
+    'lastcontact',
+    'changeddate',
     'dateadded',
+// '(SELECT GROUP_CONCAT(description ORDER BY dateadded SEPARATOR ", ")
+//   FROM ' . db_prefix() . 'notes 
+//   WHERE rel_type = "lead" AND rel_id = ' . db_prefix() . 'leads.id) AS lead_notes',
+
+
 ]);
-
-// Add dateassigned only if the viewer is 58 or 20
-if ($leadcolumnvisible) {
-    $aColumns[] = 'dateassigned';
-    $aColumns[] = 'lastcontact';
-    $aColumns[] = 'changeddate';
-}
-
 
 $sIndexColumn = 'id';
 $sTable       = db_prefix() . 'leads';
@@ -350,12 +345,10 @@ foreach ($rResult as $aRow) {
     $row[] = $aRow['language_name'];
     $row[] = $aRow['whatsapp_number'];
 
-   // Date Assigned column – only for staff 58 & 20
-if ($leadcolumnvisible) {
-    $row[] = ($aRow['dateassigned'] == '0000-00-00 00:00:00' || !is_date($aRow['dateassigned'])? '': '<span data-toggle="tooltip" data-title="' . _dt($aRow['dateassigned']) . '" class="text-has-action is-date">' . time_ago($aRow['dateassigned']) . '</span>');
+    $row[] = ($aRow['dateassigned'] == '0000-00-00 00:00:00' || !is_date($aRow['dateassigned']) ? '' : '<span data-toggle="tooltip" data-title="' . _dt($aRow['dateassigned']) . '" class="text-has-action is-date">' . time_ago($aRow['dateassigned']) . '</span>');
     $row[] = ($aRow['lastcontact'] == '0000-00-00 00:00:00' || !is_date($aRow['lastcontact']) ? '' : '<span data-toggle="tooltip" data-title="' . _dt($aRow['lastcontact']) . '" class="text-has-action is-date">' . time_ago($aRow['lastcontact']) . '</span>');
     $row[] = ($aRow['changeddate'] == '0000-00-00 00:00:00' || !is_date($aRow['changeddate']) ? '' : '<span data-toggle="tooltip" data-title="' . _dt($aRow['changeddate']) . '" class="text-has-action is-date">' . time_ago($aRow['changeddate']) . '</span>');
-}
+
     $row[] = '<span data-toggle="tooltip" data-title="' . _dt($aRow['dateadded']) . '" class="text-has-action is-date">' . time_ago($aRow['dateadded']) . '</span>';
 
     // Custom fields add values
