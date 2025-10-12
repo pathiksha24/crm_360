@@ -438,7 +438,11 @@
 <?php init_tail(); ?>
 <script>
     var openLeadID = '<?php echo $leadid; ?>';
-    var is_admin = '<?php echo is_admin(); ?>';
+    // var is_admin = '</?php echo is_admin(); ?>';
+    var is_admin = <?php echo is_admin() ? 'true' : 'false'; ?>;
+    var CURRENT_STAFF_ID = parseInt('<?php echo (int) get_staff_user_id(); ?>', 10);
+    var SHOW_COLS_FOR_STAFF = [58, 17, 174, 178, 56, 54];
+
     $(function () {
         leads_kanban();
         $('#leads_bulk_mark_lost').on('change', function () {
@@ -916,7 +920,18 @@
                 var $btnReload = $(".btn-dt-reload");
                 $btnReload.attr("data-toggle", "tooltip");
                 $btnReload.attr("title", app.lang.dt_button_reload);
-
+// date assigned , last contact , changed sttaus from new , created , tags visible only for call center 1 anju,durga,call cnter 5,poloumy,julin starts
+                // Run after built-ins settle
+                setTimeout(function () { enforceVisibilityRule(t); }, 120);
+                // Re-apply on every draw (search, paginate, ajax reload, etc.)
+                $(t).on('draw.dt', function () {
+                setTimeout(function () { enforceVisibilityRule($(t)); }, 0);
+                });
+                // Re-apply after any column visibility changes
+                $(t).on('column-visibility.dt', function () {
+                setTimeout(function () { enforceVisibilityRule($(t)); }, 0);
+                });
+// date assigned , last contact , changed sttaus from new , created , tags visible only for call center 1 anju,durga,call cnter 5,poloumy,julin ends
                 var $btnColVis = $(".dt-column-visibility");
                 $btnColVis.attr("data-toggle", "tooltip");
                 $btnColVis.attr("title", app.lang.dt_button_column_visibility);
@@ -981,7 +996,36 @@
             buttons: table_buttons_options,
         };
 
-        table = table.dataTable(dtSettings);
+
+// date assigned , last contact , changed sttaus from new , created , tags visible only for call center 1 anju,durga,call cnter 5,poloumy,julin starts
+function enforceVisibilityRule(t) {
+
+ if (SHOW_COLS_FOR_STAFF.indexOf(CURRENT_STAFF_ID) !== -1) return;
+
+  var $table = t && t.jquery ? t : $(t);
+  var api = $table.DataTable ? $table.DataTable() : $(t).DataTable();
+
+  var idsToHide = [
+    '#th-last-dateassigned', // Date Assigned
+    '#th-last-contact',      // Last Contact
+    '#th-changeddate',       // Changed Status from New
+    '#th-date-created',      // Created
+    '#th-tags'               // Tags
+  ];
+
+  idsToHide.forEach(function (sel) {
+    var $th = $table.find('thead th' + sel);
+    if ($th.length) {
+      // Use the header node directly to select the column (avoids index mismatch)
+      api.column($th).visible(false, false);
+    }
+  });
+
+  api.columns.adjust();
+}
+// date assigned , last contact , changed sttaus from new , created , tags visible only for call center 1 anju,durga,call cnter 5,poloumy,julin ends
+
+table = table.dataTable(dtSettings);
         var tableApi = table.DataTable();
 
         var hiddenHeadings = table.find("th.not_visible");
