@@ -34,6 +34,13 @@
         </h4>
     </div>
     <div class="modal-body">
+
+    <?php
+// Staff IDs who should NOT see the Activity Log
+$qp_restricted_staff = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234, 229];
+$qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
+?>
+
         <div class="row">
             <div class="col-md-12">
                 <?php if (isset($lead)) {
@@ -117,12 +124,14 @@
                                                 ?>
                                             </a>
                                         </li>
+                                        <?php if (!$qp_hide_activity) { ?>
                                         <li role="presentation">
                                             <a href="#lead_activity" aria-controls="lead_activity" role="tab"
                                                data-toggle="tab">
                                                 <?php echo _l('lead_add_edit_activity'); ?>
                                             </a>
                                         </li>
+                                        <?php } ?>
                                         <?php if (is_gdpr() && (get_option('gdpr_enable_lead_public_form') == '1' || get_option('gdpr_enable_consent_for_leads') == '1')) { ?>
                                             <li role="presentation">
                                                 <a href="#gdpr" aria-controls="gdpr" role="tab" data-toggle="tab">
@@ -200,6 +209,7 @@
                                 <?php } ?>
                             </div>
                         <?php } ?>
+                        <?php if (!$qp_hide_activity) { ?>
                         <div role="tabpanel" class="tab-pane" id="lead_activity">
                             <div>
                                 <div class="activity-feed">
@@ -249,6 +259,7 @@
                                 <div class="clearfix"></div>
                             </div>
                         </div>
+                        <?php } ?>
                         <div role="tabpanel" class="tab-pane" id="tab_proposals_leads">
                             <?php if (has_permission('proposals', '', 'create')) { ?>
                                 <a href="<?php echo admin_url('proposals/proposal?rel_type=lead&rel_id=' . $lead->id); ?>"
@@ -413,4 +424,28 @@
 <?php hooks()->do_action('lead_modal_profile_bottom', (isset($lead) ? $lead->id : '')); ?>
 <script>
     validate_lead_customization_form();
+</script>
+<!--if u add notes tab getting viisble hidden to cc stafs-->
+<script>
+(function () {
+  var hideActivity = <?php echo json_encode($qp_hide_activity); ?>;
+  if (!hideActivity) return;
+
+  // Remove the tab & pane if anything slipped through
+  $('a[href="#lead_activity"]').closest('li').remove();
+  $('#lead_activity').remove();
+
+  // If URL hash tries to open it
+  if (window.location.hash === '#lead_activity') {
+    window.location.hash = '#lead_notes'; // or '#tab_lead_profile'
+  }
+
+  // Block runtime activation attempts
+  $(document).on('show.bs.tab', 'a[data-toggle="tab"]', function (e) {
+    if ($(e.target).attr('href') === '#lead_activity') {
+      e.preventDefault();
+      $('a[href="#lead_notes"]').tab('show');
+    }
+  });
+})();
 </script>
