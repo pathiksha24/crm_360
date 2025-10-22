@@ -39,8 +39,37 @@
 // Staff IDs who should NOT see the Activity Log
 $qp_restricted_staff = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234, 229];
 $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
-?>
 
+// --- existing code ---
+$qp_restricted_notes_staff = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234,229];
+$qp_hide_existing_notes = in_array(get_staff_user_id(), $qp_restricted_notes_staff);
+
+// --- NEW: establish a per-lead cutoff at first open for this restricted user ---
+if (!isset($_SESSION)) { session_start(); }
+$leadIdForCutoff = isset($lead) ? $lead->id : 0;
+$cutoffKey = 'qp_notes_cutoff_' . $leadIdForCutoff . '_' . get_staff_user_id();
+
+if ($qp_hide_existing_notes && empty($_SESSION[$cutoffKey])) {
+    // Set "now" as the moment from which notes will be visible
+    $_SESSION[$cutoffKey] = date('Y-m-d H:i:s');  // server time
+}
+$qp_notes_cutoff = ($qp_hide_existing_notes && !empty($_SESSION[$cutoffKey])) ? $_SESSION[$cutoffKey] : null;
+
+// after you set $qp_hide_existing_notes and $qp_notes_cutoff
+
+$qp_visible_notes_count = 0;
+if ($qp_hide_existing_notes && $qp_notes_cutoff) {
+    // count only notes newer than cutoff
+    foreach ($notes as $_n) {
+        if (strtotime($_n['dateadded']) > strtotime($qp_notes_cutoff)) {
+            $qp_visible_notes_count++;
+        }
+    }
+} else {
+    // unrestricted users see the normal total
+    $qp_visible_notes_count = (int) $total_notes;
+}
+?>
         <div class="row">
             <div class="col-md-12">
                 <?php if (isset($lead)) {
@@ -114,16 +143,28 @@ $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
                                                 ?>
                                             </a>
                                         </li>
-                                        <li role="presentation">
+                                        <!-- <li role="presentation">
                                             <a href="#lead_notes" aria-controls="lead_notes" role="tab"
                                                data-toggle="tab">
-                                                <?php echo _l('lead_add_edit_notes');
+                                                </?php echo _l('lead_add_edit_notes');
                                                 if ($total_notes > 0) {
                                                     echo ' <span class="badge">' . $total_notes . '</span>';
                                                 }
                                                 ?>
                                             </a>
+                                        </li> -->
+                                      <li role="presentation">
+                                        <a href="#lead_notes" aria-controls="lead_notes" role="tab" data-toggle="tab">
+                                            <?php
+                                            echo _l('lead_add_edit_notes');
+                                            if ($qp_visible_notes_count > 0) {
+                                                echo ' <span class="badge">' . $qp_visible_notes_count . '</span>';
+                                            }
+                                            ?>
+                                        </a>
                                         </li>
+
+
                                         <?php if (!$qp_hide_activity) { ?>
                                         <li role="presentation">
                                             <a href="#lead_activity" aria-controls="lead_activity" role="tab"
@@ -360,7 +401,18 @@ $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
                             <?php
                             $len = count($notes);
                             $i = 0;
-                            foreach ($notes as $note) { ?>
+                            $rendered_any = false;
+                            foreach ($notes as $note) { 
+                                
+                                // Hide all notes created at or before cutoff for restricted users
+                                    if ($qp_hide_existing_notes && $qp_notes_cutoff) {
+                                        // compare server timestamps
+                                        if (strtotime($note['dateadded']) <= strtotime($qp_notes_cutoff)) {
+                                            continue;
+                                        }
+                                    }
+                                    $rendered_any = true;
+                                    ?>
                                 <div class="media lead-note">
                                     <a href="<?php echo admin_url('profile/' . $note['addedfrom']); ?>" target="_blank">
                                         <?php echo staff_profile_image($note['addedfrom'], ['staff-profile-image-small', 'pull-left mright10']); ?>
@@ -413,7 +465,7 @@ $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
                                     ?>
                                 </div>
                                 <?php $i++;
-                            } ?>
+                            }  ?>
                         </div>
                     <?php } ?>
                     <?php hooks()->do_action('after_lead_tabs_content', $lead ?? null); ?>
