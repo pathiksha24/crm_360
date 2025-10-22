@@ -1,4 +1,9 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
+<?php
+$restricted_staff_ids = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234, 229];
+$current_staff_id = get_staff_user_id();
+?>
+
 
 <div class="<?php if ($openEdit == true) {
 
@@ -502,7 +507,7 @@
                         <?php echo (isset($lead) && $lead->assigned != 0 ? get_staff_full_name($lead->assigned) : '-') ?>
 
                     </dd>
-
+                <?php if (!in_array($current_staff_id, $restricted_staff_ids)) { ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('tags'); ?></dt>
 
                     <dd class="tw-text-neutral-900 tw-mt-1 mbot10">
@@ -527,7 +532,8 @@
                         ?>
 
                     </dd>
-
+                <?php } ?>
+                <?php if (!in_array($current_staff_id, $restricted_staff_ids)) { ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
 
                         <?php echo _l('leads_dt_datecreated'); ?></dt>
@@ -537,7 +543,7 @@
                         <?php echo (isset($lead) && $lead->dateadded != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . _dt($lead->dateadded) . '">' . time_ago($lead->dateadded) . '</span>' : '-') ?>
 
                     </dd>
-
+                  <?php } ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
 
                         <?php echo _l('leads_dt_last_contact'); ?></dt>
