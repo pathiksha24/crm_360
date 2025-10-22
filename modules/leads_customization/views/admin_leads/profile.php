@@ -543,7 +543,6 @@ $current_staff_id = get_staff_user_id();
                         <?php echo (isset($lead) && $lead->dateadded != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . _dt($lead->dateadded) . '">' . time_ago($lead->dateadded) . '</span>' : '-') ?>
 
                     </dd>
-                  <?php } ?>
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
 
                         <?php echo _l('leads_dt_last_contact'); ?></dt>
@@ -553,6 +552,7 @@ $current_staff_id = get_staff_user_id();
                         <?php echo (isset($lead) && $lead->lastcontact != '' ? '<span class="text-has-action" data-toggle="tooltip" data-title="' . _dt($lead->lastcontact) . '">' . time_ago($lead->lastcontact) . '</span>' : '-') ?>
 
                     </dd>
+                  <?php } ?>
 
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500"><?php echo _l('lead_public'); ?>
 
