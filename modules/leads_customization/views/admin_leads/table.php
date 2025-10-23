@@ -24,6 +24,7 @@ $aColumns = array_merge($aColumns, ['company',
     '(SELECT GROUP_CONCAT(name SEPARATOR ",") FROM ' . db_prefix() . 'taggables JOIN ' . db_prefix() . 'tags ON ' . db_prefix() . 'taggables.tag_id = ' . db_prefix() . 'tags.id WHERE rel_id = ' . db_prefix() . 'leads.id and rel_type="lead" ORDER by tag_order ASC LIMIT 1) as tags',
     'firstname as assigned_firstname',
     db_prefix() . 'leads_status.name as status_name',
+    db_prefix() . 'leads.future_enquiry_date as future_enquiry_date',
     db_prefix() . 'leads_sources.name as source_name',
     db_prefix() . 'leads_services.name as service_name',
     db_prefix() . 'leads_languages.name as language_name',
@@ -339,6 +340,15 @@ foreach ($rResult as $aRow) {
     }
 
     $row[] = $outputStatus;
+    // Future Enquiry Date (human-friendly on screen, exact date in tooltip)
+$feDateCell = '';
+if (!empty($aRow['future_enquiry_date']) && is_date($aRow['future_enquiry_date'])) {
+    // Display as: 22 October 2025
+    $feDateCell = _d($aRow['future_enquiry_date']);
+}
+$row[] = $feDateCell;
+
+
 
     $row[] = $aRow['source_name'];
     $row[] = $aRow['service_name'];

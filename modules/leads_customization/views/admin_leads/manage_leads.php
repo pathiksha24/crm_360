@@ -357,6 +357,10 @@
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-status'],
                                         ];
                                         $_table_data[] = [
+                                       'name' => 'Future Enquiry Date', 
+                                        'th_attrs' => ['class' => 'toggleable', 'id' => 'th-future-enquiry'],
+                                    ];
+                                        $_table_data[] = [
                                             'name' => _l('leads_source'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-source'],
                                         ];
