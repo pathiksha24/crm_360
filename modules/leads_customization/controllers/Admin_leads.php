@@ -409,4 +409,88 @@ class Admin_leads extends Leads
         }
     }
 
+
+        public function mark_future_enquiry()
+{
+    if (!is_staff_member()) {
+        show_error('Unauthorized', 401);
+    }
+
+    $leadid  = (int) $this->input->post('leadid');
+    $status  = (int) $this->input->post('status'); // should be 68
+    $date_in = $this->input->post('future_enquiry_date', true);
+  
+
+    if (!$leadid || $status !== 68 || empty($date_in)) {
+        show_error('Invalid data', 400);
+    }
+
+    // 1) Get OLD status id & name BEFORE update
+    $old_status_id = (int) $this->db
+        ->select('status')
+        ->where('id', $leadid)
+        ->get(db_prefix().'leads')
+        ->row()
+        ->status;
+
+    $old_status_name = (string) ($this->db
+        ->select('name')
+        ->where('id', $old_status_id)
+        ->get(db_prefix().'leads_status')
+        ->row()->name ?? '');
+
+    // 2) Compute NEW status name (id 68)
+    $new_status_name = (string) ($this->db
+        ->select('name')
+        ->where('id', $status)
+        ->get(db_prefix().'leads_status')
+        ->row()->name ?? 'Future Enquiry');
+
+    // Convert to MySQL DATETIME (keep time)
+    $future_dt = to_sql_date($date_in, true);
+
+    // Update the lead
+    $this->db->where('id', $leadid);
+    $this->db->update(db_prefix().'leads', [
+        'status'              => $status,              // 68
+        'changeddate'         => date('Y-m-d H:i:s'),
+        'future_enquiry_date' => $future_dt,
+    ]);
+
+    // 3) Write activity row exactly like Perfex does for status changes
+    $additional = serialize([
+        get_staff_full_name(), // who
+        $new_status_name,      // new
+        $old_status_name,      // old
+    ]);
+
+    $this->db->insert(db_prefix().'lead_activity_log', [
+        'leadid'         => $leadid,
+        'description'    => 'not_lead_activity_status_updated',
+        'additional_data'=> $additional,
+        'date'           => date('Y-m-d H:i:s'),
+        'staffid'        => get_staff_user_id(),
+        'full_name'      => get_staff_full_name(),
+    ]);
+
+    // (Optional) visible note on the lead
+    if (!empty($note_in)) {
+        $this->load->model('misc_model');
+        $this->misc_model->add_note([
+            'description' => 'Future Enquiry: ' . $note_in . ' (Date: ' . _dt($future_dt) . ')',
+            'rel_type'    => 'lead',
+            'rel_id'      => $leadid,
+            'dateadded'   => date('Y-m-d H:i:s'),
+            'addedfrom'   => get_staff_user_id(),
+        ]);
+    }
+
+    echo json_encode(['success' => true]);
+    exit;
 }
+
+
+        
+        
+
+    }

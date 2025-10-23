@@ -435,6 +435,42 @@
 
 </script>
 <?php include_once(APPPATH . 'views/admin/leads/status.php'); ?>
+
+
+<!-- Future Enquiry Modal -->
+<div class="modal fade" id="futureEnquiryModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="futureEnquiryForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title"><?php echo _l('Future enquiry'); ?></h4>
+        </div>
+        <div class="modal-body">
+          <?php
+            echo render_datetime_input(
+            'future_enquiry_date',
+            _l('Future Enquiry Date'), // Proper label text
+            '',
+            ['required' => true]
+            );
+
+          ?>
+        
+          <input type="hidden" name="leadid" id="fe_leadid">
+          <input type="hidden" name="status"  id="fe_status" value="68">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo _l('close'); ?></button>
+          <button type="submit" class="btn btn-primary" id="fe_save_btn"><?php echo _l('save'); ?></button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <?php init_tail(); ?>
 <script>
     var openLeadID = '<?php echo $leadid; ?>';
@@ -444,6 +480,7 @@
     var SHOW_COLS_FOR_STAFF = [58, 17, 174, 178, 56, 54];
 
     $(function () {
+        
         leads_kanban();
         $('#leads_bulk_mark_lost').on('change', function () {
             $('#move_to_status_leads_bulk').prop('disabled', $(this).prop('checked') == true);
@@ -535,6 +572,38 @@
             initDataTable('.table.table-leads_new', admin_url + 'leads_customization/admin_leads/table', leadsTableNotSearchable, leadsTableNotSortable, fnServerParams, [table_leads.find("th.date-created").index(), "desc"]);
         }
     });
+$(function () {
+  $('#futureEnquiryForm').on('submit', function (e) {
+    e.preventDefault();
+
+    var $btn = $('#fe_save_btn').prop('disabled', true);
+    var payload = {
+      leadid: $('#fe_leadid').val(),
+      status:  $('#fe_status').val(), // 68
+      future_enquiry_date: $('input[name="future_enquiry_date"]').val(),
+    };
+
+    if (!payload.future_enquiry_date) {
+      alert_float('warning', "<?php echo _l('please_select_date'); ?>");
+      $btn.prop('disabled', false);
+      return;
+    }
+
+    $.post(admin_url + "leads_customization/admin_leads/mark_future_enquiry", payload)
+      .done(function () {
+        $('#futureEnquiryModal').modal('hide');
+        $('input[name="future_enquiry_date"]').val('');
+        $("table.table-leads_new").DataTable().ajax.reload(null, false);
+        alert_float('success', "<?php echo _l('updated_successfully'); ?>");
+      })
+      .fail(function (xhr) {
+        alert_float('danger', xhr.responseText || 'Error');
+      })
+      .always(function () {
+        $btn.prop('disabled', false);
+      });
+  });
+});
 
     function init_lead(id, isEdit) {
         if ($("#task-modal").is(":visible")) {
@@ -546,17 +615,33 @@
         }
     }
 
-    function lead_mark_as(status_id, lead_id) {
-        var data = {};
+    // function lead_mark_as(status_id, lead_id) {
+    //     var data = {};
+    //     let table_leads = $("table.table-leads_new");
+    //     data.status = status_id;
+    //     data.leadid = lead_id;
+    //     $.post(admin_url + "leads/update_lead_status", data).done(function (
+    //         response
+    //     ) {
+    //         table_leads.DataTable().ajax.reload(null, false);
+    //     });
+    // }
+        function lead_mark_as(status_id, lead_id) {
         let table_leads = $("table.table-leads_new");
-        data.status = status_id;
-        data.leadid = lead_id;
-        $.post(admin_url + "leads/update_lead_status", data).done(function (
-            response
-        ) {
+        // If "Future Enquiry" (id 68) -> open modal instead of default POST
+        if (parseInt(status_id, 10) === 68) {
+            $('#fe_leadid').val(lead_id);
+            $('#fe_status').val(status_id);
+            $('#futureEnquiryModal').modal('show');
+            return;
+        }
+        // Otherwise use the default status update
+        var data = { status: status_id, 
+            leadid: lead_id };
+        $.post(admin_url + "leads/update_lead_status", data).done(function () {
             table_leads.DataTable().ajax.reload(null, false);
         });
-    }
+        }
 
     function init_lead_modal_data(id, url, isEdit) {
         var requestURL =
