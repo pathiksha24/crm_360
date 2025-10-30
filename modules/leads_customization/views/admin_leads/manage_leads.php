@@ -1192,6 +1192,65 @@ table = table.dataTable(dtSettings);
 
         return tableApi;
     }
+
+// ==== PHONE FIELD uae strating with 0 or 971 accepting exact 9 char starts
+(function () {
+  const sel = 'input[name="phonenumber"]';
+
+  function updateTitle($el, value) {
+    if (/^(\+?971|0)/.test(value)) {
+      $el.attr('title', 'If number starts with +971/971 or 0, it must have exactly 9 digits after the prefix.');
+    } else {
+      $el.attr('title', 'Enter a valid phone number with country code (e.g., +44XXXXXXX or +91XXXXXXX).');
+    }
+  }
+
+  function setup($el) {
+    $el.attr({
+      type: 'tel',
+      inputmode: 'numeric',
+      autocomplete: 'tel',
+      pattern: '^\\+?\\d{5,15}$',
+    });
+    updateTitle($el, $el.val() || '');
+  }
+
+  function clamp(value) {
+    value = value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    const match971 = value.match(/^(\+?971)(\d*)$/);
+    if (match971) return match971[1] + match971[2].slice(0, 9);
+    const match0 = value.match(/^(0)(\d*)$/);
+    if (match0) return match0[1] + match0[2].slice(0, 9);
+    return value;
+  }
+
+  // Apply logic only for phone number field
+  $(document)
+    .on('focus', sel, function () {
+      setup($(this));
+    })
+    .on('input', sel, function () {
+      const before = this.value;
+      const after = clamp(before);
+      if (before !== after) this.value = after;
+      updateTitle($(this), this.value);
+    })
+    .on('blur', sel, function () {
+      const val = this.value.trim();
+      if (/^(\+?971)\d*$/.test(val) && !/^(\+?971)\d{9}$/.test(val)) {
+        alert_float('warning', 'If number starts with +971/971, it must have exactly 9 digits after the prefix.');
+        return;
+      }
+      if (/^(0)\d*$/.test(val) && !/^0\d{9}$/.test(val)) {
+        alert_float('warning', 'If number starts with 0, it must have exactly 9 digits after the prefix.');
+        return;
+      }
+    });
+
+  // Initialize immediately for existing phone field
+  setup($(sel));
+})();
+// ==== PHONE FIELD uae strating with 0 or 971 accepting exact 9 char ends
 </script>
 </body>
 
