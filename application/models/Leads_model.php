@@ -297,6 +297,18 @@ class Leads_model extends App_Model
 
         $data['email'] = trim($data['email']);
 
+
+        // ✅ Future Enquiry Date save
+        $future_date = $this->input->post('future_enquiry_date', true);
+        $status_id   = $this->input->post('status');
+
+        if ($status_id == '68') {
+            $data['future_enquiry_date'] = !empty($future_date) ? to_sql_date($future_date, true) : null;
+        } else {
+            $data['future_enquiry_date'] = null;
+        }
+
+
         $this->db->where('id', $id);
         $this->db->update(db_prefix() . 'leads', $data);
         if ($this->db->affected_rows() > 0) {
