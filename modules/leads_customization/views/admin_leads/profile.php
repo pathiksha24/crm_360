@@ -457,6 +457,14 @@ $current_staff_id = get_staff_user_id();
                         ?>
 
                     </dd>
+                    <?php if (isset($lead) && $lead->status == 68 && !empty($lead->future_enquiry_date)) { ?>
+                        <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
+                            <?php echo _l('Future Enquiry Date'); ?>
+                        </dt>
+                        <dd class="tw-text-neutral-900 tw-mt-1 mbot15">
+                            <?php echo _dt($lead->future_enquiry_date); ?>
+                        </dd>
+                    <?php } ?>
 
                     <dt class="lead-field-heading tw-font-medium tw-text-neutral-500">
 
@@ -686,6 +694,8 @@ $current_staff_id = get_staff_user_id();
 
             </div>
 
+               
+
             <div class="col-md-4">
 
                 <?php
@@ -779,6 +789,18 @@ $current_staff_id = get_staff_user_id();
                 ?>
 
             </div>
+
+                <?php if (isset($lead)) : ?>
+                <div class="col-md-4" id="future-enquiry-date-wrap" style="display:none;">
+                    <?php
+                    $future_enquiry_date_value = isset($lead->future_enquiry_date) ? _dt($lead->future_enquiry_date) : '';
+                    echo render_datetime_input('future_enquiry_date', 'Future Enquiry Date', $future_enquiry_date_value);
+                    ?>
+                </div>
+                <?php endif; ?>
+
+
+
 
 
 
@@ -1176,6 +1198,70 @@ $current_staff_id = get_staff_user_id();
             }
 
         });
+        
+  var STATUS_FUTURE_ENQUIRY = '68'; // ID for "Future Enquiry"
+  var $wrap = $('#future-enquiry-date-wrap');
+  var $input = $wrap.find('input[name="future_enquiry_date"]');
 
-    });
+  function $statusEl() {
+    return $('div[app-field-wrapper="status"] select').first();
+  }
+
+  function shouldShow() {
+    var $sel = $statusEl();
+    if ($sel.length === 0) return false;
+    var val = String($sel.val() || '').trim();
+    if (val === STATUS_FUTURE_ENQUIRY) return true;
+
+    // fallback if status text matches instead of ID
+    var txt = $.trim($sel.find('option:selected').text()).toLowerCase();
+    return (txt === 'future enquiry' || txt === 'future inquiry');
+  }
+
+  function applyToggle() {
+    if ($wrap.length === 0) return;
+    var show = shouldShow();
+
+    // Show/Hide the field
+    $wrap.toggle(show);
+    $wrap.find('input,select,textarea').prop('disabled', !show);
+
+    // Make field required only when visible
+    if (show) {
+      $input.attr('required', 'required');
+      $wrap.find('label').addClass('text-danger'); // optional red label
+    } else {
+      $input.removeAttr('required');
+      $wrap.find('label').removeClass('text-danger');
+    }
+  }
+
+  // Run initially
+  applyToggle();
+
+  // Watch for status change (native + bootstrap-select)
+  $(document).on('change', 'div[app-field-wrapper="status"] select', applyToggle);
+  $(document).on('changed.bs.select loaded.bs.select', 'div[app-field-wrapper="status"] select', applyToggle);
+
+  // When clicking Edit
+  $(document).on('click', '[lead-edit]', function () {
+    setTimeout(applyToggle, 200);
+  });
+
+  // When modal opens or reloads
+  $(document).on('shown.bs.modal', '.lead-modal', function () {
+    setTimeout(applyToggle, 200);
+  });
+
+  // Final safeguard: before submit, enforce required check
+  $(document).on('submit', '#lead_form', function (e) {
+    if (shouldShow() && !$input.val()) {
+      e.preventDefault();
+      alert('Please enter a Future Enquiry Date before saving.');
+      $input.focus();
+      return false;
+    }
+  });
+});
+
 </script>
