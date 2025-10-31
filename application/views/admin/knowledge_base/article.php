@@ -81,6 +81,15 @@ if (isset($article)) {
     $contents = $article->description;
 } ?>
                     <?= render_textarea('description', '', $contents, [], [], '', 'tinymce tinymce-manual'); ?>
+                    <div class="tw-mt-2">
+  <button type="button" class="btn btn-default" id="kb-upload-image">
+    <i class="fa fa-upload"></i> <?= _l('upload'); ?> <?= _l('file'); ?>
+  </button>
+  <!-- <input type="file" id="kb-image-input" accept="image/*" style="display:none"> -->
+  <input type="file" id="kb-image-input" accept="*" style="display:none">
+
+</div>
+
                 </div>
                 <?php if ((staff_can('create', 'knowledge_base') && ! isset($article)) || staff_can('edit', 'knowledge_base') && isset($article)) { ?>
                 <div class="panel-footer text-right">
@@ -98,17 +107,69 @@ if (isset($article)) {
 <?php $this->load->view('admin/knowledge_base/group'); ?>
 <?php init_tail(); ?>
 <script>
-    $(function() {
-        init_editor('#description', {
-            toolbar_sticky: true,
-        });
+$(function () {
+  init_editor('#description', {
+    toolbar_sticky: true,
+    menubar: 'file edit view format tools table',
+    toolbar: 'undo redo | styles | bold italic underline | alignleft aligncenter alignright | bullist numlist | link | removeformat'
+  });
 
-        appValidateForm($('#article-form'), {
-            subject: 'required',
-            articlegroup: 'required'
-        });
+  $('#kb-upload-image').on('click', function () {
+    $('#kb-image-input').trigger('click');
+  });
+
+  $('#kb-image-input').on('change', function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    // --- CSRF (Perfex/CI) ---
+    var csrfName = '<?= $this->security->get_csrf_token_name(); ?>';
+    var csrfHash = '<?= $this->security->get_csrf_hash(); ?>';
+    fd.append(csrfName, csrfHash);
+    // -------------------------
+
+    $.ajax({
+      url: admin_url + 'knowledge_base/upload_image',
+      method: 'POST',
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: function (res, status, xhr) {
+        try {
+          const obj = typeof res === 'string' ? JSON.parse(res) : res;
+          if (obj.location) {
+            tinymce.get('description').insertContent('<img src="' + obj.location + '" alt="' + (file.name || '') + '">');
+          } else {
+            alert(obj.error || 'Image upload failed');
+          }
+        } catch (e) {
+          alert('Unexpected response from server.');
+        }
+      },
+      error: function (xhr) {
+        // Show actual server message if present
+        let msg = 'Upload failed.';
+        try {
+          const obj = JSON.parse(xhr.responseText || '{}');
+          if (obj.error) msg = obj.error;
+        } catch (e) {}
+        alert(msg);
+      }
     });
+
+    $(this).val('');
+  });
+
+  appValidateForm($('#article-form'), {
+    subject: 'required',
+    articlegroup: 'required'
+  });
+});
 </script>
+
 </body>
 
 </html>

@@ -251,4 +251,55 @@ class Knowledge_base extends AdminController
             echo json_encode($this->knowledge_base_model->get($id));
         }
     }
+public function upload_image() // you can rename this to upload_file() if you like
+{
+    if (staff_cant('edit', 'knowledge_base') && staff_cant('create', 'knowledge_base')) {
+        return $this->output->set_status_header(403)->set_output('Forbidden');
+    }
+
+    $dir = FCPATH . 'uploads/knowledge_base/';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+        if (function_exists('index_html')) { @index_html($dir); }
+    }
+
+    if (!is_writable($dir)) {
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(500)
+            ->set_output(json_encode(['error' => 'Upload directory is not writable.']));
+    }
+
+    // 🔹 Allow every common file type here
+    $config = [
+        'upload_path'   => $dir,
+        'allowed_types' => '*', // <--- allows all file types
+        'max_size'      => 20000, // 20MB limit
+        'encrypt_name'  => true,
+    ];
+
+    $this->load->library('upload', $config);
+
+    if (!$this->upload->do_upload('file')) {
+        $err = strip_tags($this->upload->display_errors('', ''));
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode(['error' => $err ?: 'Upload failed']));
+    }
+
+    $data = $this->upload->data();
+    $url  = site_url('uploads/knowledge_base/' . $data['file_name']);
+
+    // TinyMCE and general use both expect this key
+    return $this->output
+        ->set_content_type('application/json')
+        ->set_output(json_encode([
+            'location' => $url,
+            'filename' => $data['file_name'],
+            'type'     => $data['file_type']
+        ]));
+}
+
+
 }
