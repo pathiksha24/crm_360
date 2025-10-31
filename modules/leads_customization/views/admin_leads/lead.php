@@ -40,36 +40,38 @@
 $qp_restricted_staff = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234, 229];
 $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
 
-// --- existing code ---
-$qp_restricted_notes_staff = [194, 14, 59, 55, 216, 214, 72, 20, 34, 163, 234,229];
-$qp_hide_existing_notes = in_array(get_staff_user_id(), $qp_restricted_notes_staff);
 
-// --- NEW: establish a per-lead cutoff at first open for this restricted user ---
+// notes visible only to julin , gopi, anju , call center1 , call center 5 , durga , poloumy strats
+$qp_notes_allowlist = [174,17,210,56,178,54,58];
+$qp_hide_existing_notes = !in_array(get_staff_user_id(), $qp_notes_allowlist);
 if (!isset($_SESSION)) { session_start(); }
 $leadIdForCutoff = isset($lead) ? $lead->id : 0;
 $cutoffKey = 'qp_notes_cutoff_' . $leadIdForCutoff . '_' . get_staff_user_id();
 
-if ($qp_hide_existing_notes && empty($_SESSION[$cutoffKey])) {
-    // Set "now" as the moment from which notes will be visible
-    $_SESSION[$cutoffKey] = date('Y-m-d H:i:s');  // server time
+if ($qp_hide_existing_notes) {
+    if (empty($_SESSION[$cutoffKey])) {
+       
+        $_SESSION[$cutoffKey] = date('Y-m-d H:i:s'); 
+    }
+    $qp_notes_cutoff = $_SESSION[$cutoffKey];
+} else {
+
+    $qp_notes_cutoff = null;
 }
-$qp_notes_cutoff = ($qp_hide_existing_notes && !empty($_SESSION[$cutoffKey])) ? $_SESSION[$cutoffKey] : null;
 
-// after you set $qp_hide_existing_notes and $qp_notes_cutoff
-
+// Compute badge count for Notes tab
 $qp_visible_notes_count = 0;
 if ($qp_hide_existing_notes && $qp_notes_cutoff) {
-    // count only notes newer than cutoff
     foreach ($notes as $_n) {
         if (strtotime($_n['dateadded']) > strtotime($qp_notes_cutoff)) {
             $qp_visible_notes_count++;
         }
     }
 } else {
-    // unrestricted users see the normal total
     $qp_visible_notes_count = (int) $total_notes;
 }
 ?>
+
         <div class="row">
             <div class="col-md-12">
                 <?php if (isset($lead)) {

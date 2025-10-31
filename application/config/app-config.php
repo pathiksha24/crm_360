@@ -17,7 +17,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 * environments.
 *
 */
-define('APP_BASE_URL', 'https://crm.quickplus360.com/');
+// define('APP_BASE_URL', 'https://crm.quickplus360.com/');
+define('APP_BASE_URL', 'http://localhost:1000/');
+
 
 /*
 * --------------------------------------------------------------------------
@@ -42,11 +44,13 @@ define('APP_DB_HOSTNAME', 'localhost');
 /**
  * The username used to connect to the database
  */
-define('APP_DB_USERNAME', 'u619291874_quickplus_crm');
+// define('APP_DB_USERNAME', 'u619291874_quickplus_crm');
+define('APP_DB_USERNAME', 'root');
 /**
  * The password used to connect to the database
  */
-define('APP_DB_PASSWORD', '3Wd4BaGx2+');
+// define('APP_DB_PASSWORD', '3Wd4BaGx2+');
+define('APP_DB_PASSWORD', '');
 /**
  * The name of the database you want to connect to
  */
