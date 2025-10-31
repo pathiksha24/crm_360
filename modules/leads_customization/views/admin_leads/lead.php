@@ -42,7 +42,7 @@ $qp_hide_activity = in_array(get_staff_user_id(), $qp_restricted_staff);
 
 
 // notes visible only to julin , gopi, anju , call center1 , call center 5 , durga , poloumy strats
-$qp_notes_allowlist = [174,17,210,56,178,54,58];
+$qp_notes_allowlist = [174,17,210,56,178,54,58,188,77,192];
 $qp_hide_existing_notes = !in_array(get_staff_user_id(), $qp_notes_allowlist);
 if (!isset($_SESSION)) { session_start(); }
 $leadIdForCutoff = isset($lead) ? $lead->id : 0;
