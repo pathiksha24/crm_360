@@ -11,7 +11,29 @@
                 <div class="panel_s">
                     <div class="panel-body tc-content">
                         <div class="kb-article">
-                            <?php echo $article->description; ?>
+                            <?php // In the view right before echoing $article->description
+                            // In the view right before echoing $article->description
+                            $html = $article->description;
+
+                            // Replace <img> pointing to non-image extensions with <a>
+                            $html = preg_replace_callback(
+                                '/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i',
+                                function ($m) {
+                                    $src = $m[1];
+                                    $ext = strtolower(pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_EXTENSION));
+                                    $imageExts = ['jpg','jpeg','png','gif','webp','bmp'];
+                                    if (!in_array($ext, $imageExts, true)) {
+                                        $name = basename(parse_url($src, PHP_URL_PATH));
+                                        return '<a href="'.$src.'" target="_blank" rel="noopener">'.$name.'</a>';
+                                    }
+                                    return $m[0];
+                                },
+                                $html
+                            );
+
+                            echo $html;
+
+                                ?>
                         </div>
                         <hr class="hr-panel-separator" />
                         <h4 class="tw-mb-0 tw-font-medium tw-text-base">

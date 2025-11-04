@@ -251,7 +251,7 @@ class Knowledge_base extends AdminController
             echo json_encode($this->knowledge_base_model->get($id));
         }
     }
-public function upload_image() // you can rename this to upload_file() if you like
+public function upload_image() // consider renaming to upload_file()
 {
     if (staff_cant('edit', 'knowledge_base') && staff_cant('create', 'knowledge_base')) {
         return $this->output->set_status_header(403)->set_output('Forbidden');
@@ -262,7 +262,6 @@ public function upload_image() // you can rename this to upload_file() if you li
         @mkdir($dir, 0755, true);
         if (function_exists('index_html')) { @index_html($dir); }
     }
-
     if (!is_writable($dir)) {
         return $this->output
             ->set_content_type('application/json')
@@ -270,18 +269,47 @@ public function upload_image() // you can rename this to upload_file() if you li
             ->set_output(json_encode(['error' => 'Upload directory is not writable.']));
     }
 
-    // 🔹 Allow every common file type here
+    // ---- build a safe, human-readable file name (keep original) ----
+    if (empty($_FILES['file']['name'])) {
+        return $this->output->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode(['error' => 'No file uploaded.']));
+    }
+
+    $original   = $_FILES['file']['name'];
+    $ext        = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+    $nameOnly   = pathinfo($original, PATHINFO_FILENAME);
+
+    // slugify the base name (my file (final).PDF -> my-file-final.pdf)
+    $this->load->helper('url'); // for url_title
+    $slug       = trim(url_title($nameOnly, 'dash', true), '-');
+    if ($slug === '') { $slug = 'file'; }
+
+    $candidate  = $slug . ($ext ? '.' . $ext : '');
+
+    // if file exists, append -1, -2, ...
+    $finalName  = $candidate;
+    $i = 1;
+    while (file_exists($dir . $finalName)) {
+        $finalName = $slug . '-' . $i . ($ext ? '.' . $ext : '');
+        $i++;
+    }
+
+    // ---- CI Upload config ----
     $config = [
         'upload_path'   => $dir,
-        'allowed_types' => '*', // <--- allows all file types
-        'max_size'      => 20000, // 20MB limit
-        'encrypt_name'  => true,
+        'allowed_types' => '*',       // keep wide open if you really want all types
+        'max_size'      => 20000,     // 20 MB
+        'encrypt_name'  => false,     // IMPORTANT: keep our filename
+        'remove_spaces' => true,
+        'file_name'     => $finalName,
+        'overwrite'     => false,
     ];
 
     $this->load->library('upload', $config);
 
     if (!$this->upload->do_upload('file')) {
-        $err = strip_tags($this->upload->display_errors('', ''));
+        $err = trim(strip_tags($this->upload->display_errors('', '')));
         return $this->output
             ->set_content_type('application/json')
             ->set_status_header(400)
@@ -289,17 +317,20 @@ public function upload_image() // you can rename this to upload_file() if you li
     }
 
     $data = $this->upload->data();
-    $url  = site_url('uploads/knowledge_base/' . $data['file_name']);
 
-    // TinyMCE and general use both expect this key
+    // Build the public URL for the stored file
+    $url  = base_url('uploads/knowledge_base/' . $data['file_name']);
+
+    // TinyMCE and generic clients expect "location"
     return $this->output
         ->set_content_type('application/json')
         ->set_output(json_encode([
-            'location' => $url,
-            'filename' => $data['file_name'],
-            'type'     => $data['file_type']
+            'location'       => $url,
+            'filename'       => $data['file_name'],  // stored filename
+            'original_name'  => $original,           // original filename from user
+            'type'           => $data['file_type'],
+            'size'           => (int) $data['file_size']
         ]));
 }
-
 
 }
