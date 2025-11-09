@@ -53,7 +53,7 @@
                             <th>No. of Leads Assigned</th>
                             <th>No. of Transferred Calls</th>
                             <th>No. of Pending Leads</th>
-                            <th>Total</th>
+                            <!-- <th>Total</th> -->
                         </tr>
                     </thead>
                     <tbody>
@@ -75,7 +75,7 @@
                             $assigned    = (int) $m['assigned'];
                             $transferred = (int) $m['transferred'];
                             $pending     = (int) $m['pending'];
-                            $total       = $assigned + $transferred + $pending;
+                           // $total       = $assigned + $transferred + $pending;
 
                             $grand['assigned']    += $assigned;
                             $grand['transferred'] += $transferred;
@@ -86,7 +86,7 @@
                         <td><?= $assigned ?></td>
                         <td><?= $transferred ?></td>
                         <td><?= $pending ?></td>
-                        <td><strong><?= $total ?></strong></td>
+                        <!-- <td><strong></?= $total ?></strong></td> -->
                     </tr>
                     <?php endforeach; endforeach; ?>
                     </tbody>
@@ -96,7 +96,7 @@
                             <td><?= $grand['assigned'] ?></td>
                             <td><?= $grand['transferred'] ?></td>
                             <td><?= $grand['pending'] ?></td>
-                            <td><?= $grand['assigned'] + $grand['transferred'] + $grand['pending'] ?></td>
+                            <!-- <td></?= $grand['assigned'] + $grand['transferred'] + $grand['pending'] ?></td> -->
                         </tr>
                     </tfoot>
                 </table>
