@@ -246,16 +246,15 @@ class Team_daily_report extends AdminController
             $footer_data['total_net'] = 0;
 
             foreach ($rResult as $aRow) {
-                // removed this block because team daily report of team leader should get all data 
-                // if (!is_admin() && is_team_leader()){
-                //     $second_team_leader = get_second_team_leader($aRow['staff_id']);
-                //     if ($second_team_leader != get_staff_user_id() && $aRow['team_leader'] != get_staff_user_id()){
-                //         continue;
-                //     }
-                //     if (!in_array($aRow['staff_id'], $leads_staff)){
-                //         continue;
-                //     }
-                // }
+                if (!is_admin() && is_team_leader()){
+                    $second_team_leader = get_second_team_leader($aRow['staff_id']);
+                    if ($second_team_leader != get_staff_user_id() && $aRow['team_leader'] != get_staff_user_id()){
+                        continue;
+                    }
+                    if (!in_array($aRow['staff_id'], $leads_staff)){
+                        continue;
+                    }
+                }
                 $row = [];
                 $row[] = $aRow['id'];
                 $row[] = $aRow['staff'];
