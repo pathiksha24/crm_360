@@ -748,56 +748,47 @@ $current_staff_id = get_staff_user_id();
 
             <div class="clearfix"></div>
 
-            <div class="col-md-4">
+          <div class="col-md-4">
+    <?php
+    // SERVICE
+    $selected = '';
+    if (isset($lead)) {
+        $selected = $lead->service;
+    } elseif (isset($service_id)) {
+        $selected = $service_id;
+    }
 
-                <?php
+    echo render_leads_services_select($services, $selected, 'lead_add_edit_service');
 
-                $selected = '';
+    // NATIONALITY under SERVICE
+    $rel_id = isset($lead) ? $lead->id : false;
+    echo render_custom_fields('leads', $rel_id, ['slug' => 'leads_nationality']);
+    ?>
+</div>
 
-                if (isset($lead)) {
+<div class="col-md-4">
+    <?php
+    // LANGUAGE
+    $selected = '';
+    if (isset($lead)) {
+        $selected = $lead->language;
+    } elseif (isset($language_id)) {
+        $selected = $language_id;
+    }
 
-                    $selected = $lead->service;
-                } elseif (isset($service_id)) {
+    echo render_leads_languages_select($languages, $selected, 'lead_add_edit_language');
+    ?>
+</div>
 
-                    $selected = $service_id;
-                }
-
-                echo render_leads_services_select($services, $selected, 'lead_add_edit_service');
-
-                ?>
-
-            </div>
-
-
-
-            <div class="col-md-4">
-
-                <?php
-
-                $selected = '';
-
-                if (isset($lead)) {
-
-                    $selected = $lead->language;
-                } elseif (isset($language_id)) {
-
-                    $selected = $language_id;
-                }
-
-                echo render_leads_languages_select($languages, $selected, 'lead_add_edit_language');
-
-                ?>
-
-            </div>
-
-                <?php if (isset($lead)) : ?>
-                <div class="col-md-4" id="future-enquiry-date-wrap" style="display:none;">
-                    <?php
-                    $future_enquiry_date_value = isset($lead->future_enquiry_date) ? _dt($lead->future_enquiry_date) : '';
-                    echo render_datetime_input('future_enquiry_date', 'Future Enquiry Date', $future_enquiry_date_value);
-                    ?>
-                </div>
-                <?php endif; ?>
+<?php if (isset($lead)) : ?>
+<div class="col-md-4" id="future-enquiry-date-wrap" style="display:none;">
+    <?php
+    $future_enquiry_date_value = isset($lead->future_enquiry_date) ? _dt($lead->future_enquiry_date) : '';
+    echo render_datetime_input('future_enquiry_date', 'Future Enquiry Date', $future_enquiry_date_value);
+    ?>
+</div>
+<?php endif; ?>
+ -->
 
 
 
@@ -1064,13 +1055,14 @@ $current_staff_id = get_staff_user_id();
 
             </div>
 
-            <div class="col-md-12 mtop15">
+            <!-- <div class="col-md-12 mtop15">
 
-                <?php $rel_id = (isset($lead) ? $lead->id : false); ?>
+                </?php $rel_id = (isset($lead) ? $lead->id : false); ?>
 
-                <?php echo render_custom_fields('leads', $rel_id); ?>
+                </?php echo render_custom_fields('leads', $rel_id); ?>
 
-            </div>
+            </div> -->
+            <div class="col-md-12 mtop15"> <?php $rel_id = (isset($lead) ? $lead->id : false); ?> <?php echo render_custom_fields('leads', $rel_id, ['slug !=' => 'leads_nationality']); ?> </div>
 
             <div class="clearfix"></div>
 

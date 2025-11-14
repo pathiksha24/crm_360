@@ -68,7 +68,9 @@ if ($qp_hide_existing_notes && $qp_notes_cutoff) {
         }
     }
 } else {
-    $qp_visible_notes_count = (int) $total_notes;
+    // $qp_visible_notes_count = (int) $total_notes;
+    $qp_visible_notes_count = (int) ($total_notes ?? 0);
+
 }
 ?>
 
@@ -503,3 +505,66 @@ if ($qp_hide_existing_notes && $qp_notes_cutoff) {
   });
 })();
 </script>
+
+ <!-- nationality required when the serve is wrk permit related starts -->
+<script>
+$(function () {
+    function getServiceField() {
+        return $('select[name="service"]');
+    }
+    function getNationalityField() {
+        var $label = $('label').filter(function () {
+            return $(this).text().toLowerCase().indexOf('nationality') !== -1;
+        }).first();
+
+        if (!$label.length) {
+            return $(); 
+        }
+
+        return $label.closest('.form-group').find('input, select, textarea').first();
+    }
+    function isWorkPermitService() {
+        var $service = getServiceField();
+        if (!$service.length) return false;
+
+        var text = ($service.find('option:selected').text() || '').toLowerCase();
+        return text.indexOf('work permit') !== -1;
+    }
+    function toggleNationalityRequired() {
+        var $nationality = getNationalityField();
+        if (!$nationality.length) return;
+
+        var $label = $nationality.closest('.form-group').find('label');
+
+        if (isWorkPermitService()) {
+            $nationality.attr('required', 'required');
+
+            if ($label.length && !$label.find('.text-danger').length) {
+                $label.append(' <span class="text-danger">*</span>');
+            }
+        } else {
+            $nationality.removeAttr('required');
+        }
+    }
+    $(document).on('change', 'select[name="service"]', function () {
+        toggleNationalityRequired();
+    });
+
+    $(document).on('shown.bs.modal', '#lead-modal', function () {
+        toggleNationalityRequired();
+    });
+    $(document).on('submit', '#lead_form, #lead-form', function (e) {
+        if (isWorkPermitService()) {
+            var $nationality = getNationalityField();
+            if ($nationality.length && $.trim($nationality.val()) === '') {
+                e.preventDefault();
+                alert_float('warning', 'Nationality is required for Work Permit services.');
+                $nationality.focus();
+                return false;
+            }
+        }
+    });
+});
+</script>
+ <!-- nationality required when the serve is wrk permit related ends -->
+
