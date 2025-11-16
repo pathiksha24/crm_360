@@ -372,6 +372,11 @@
                                             'name' => _l('leads_language'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-language'],
                                         ];
+                                        // NEW: Nationality column header (comes from custom field leads_nationality)
+                                        $_table_data[] = [
+                                            'name' => 'Nationality',
+                                            'th_attrs' => ['class' => 'toggleable', 'id' => 'th-nationality'],
+                                        ];
                                         $_table_data[] = [
                                             'name' => _l('whatsapp_number'),
                                             'th_attrs' => ['class' => 'toggleable', 'id' => 'th-whatsapp_number'],
@@ -397,6 +402,10 @@
                                         }
                                         $custom_fields = get_custom_fields('leads', ['show_on_table' => 1]);
                                         foreach ($custom_fields as $field) {
+                                            // Skip nationality – it has a dedicated column above
+                                            if ($field['slug'] === 'leads_nationality') {
+                                                continue;
+                                            }
                                             array_push($table_data, [
                                                 'name' => $field['name'],
                                                 'th_attrs' => ['data-type' => $field['type'], 'data-custom-field' => 1],
