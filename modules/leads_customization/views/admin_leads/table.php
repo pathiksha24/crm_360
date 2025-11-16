@@ -5,14 +5,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 $this->ci->load->model('gdpr_model');
 $lockAfterConvert      = get_option('lead_lock_after_convert_to_customer');
 $has_permission_delete = has_permission('leads', '', 'delete');
-// $custom_fields         = get_table_custom_fields('leads');
-$custom_fields         = get_custom_fields('leads'); // all lead CFs
-
+$custom_fields         = get_table_custom_fields('leads');
 $consentLeads          = get_option('gdpr_enable_consent_for_leads');
 $statuses              = $this->ci->leads_model->get_status();
-// Will hold the alias for the nationality custom field column
-$customFieldsColumns = [];
-$nationalityAlias    = null;
 
 $aColumns = [
     '1',
@@ -56,37 +51,12 @@ $join = [
     'JOIN ' . db_prefix() . 'leads_languages ON ' . db_prefix() . 'leads_languages.id = ' . db_prefix() . 'leads.language',
 ];
 
-// foreach ($custom_fields as $key => $field) {
-//     $selectAs = (is_cf_date($field) ? 'date_picker_cvalue_' . $key : 'cvalue_' . $key);
-//     array_push($customFieldsColumns, $selectAs);
-//     array_push($aColumns, 'ctable_' . $key . '.value as ' . $selectAs);
-//     array_push($join, 'LEFT JOIN ' . db_prefix() . 'customfieldsvalues as ctable_' . $key . ' ON ' . db_prefix() . 'leads.id = ctable_' . $key . '.relid AND ctable_' . $key . '.fieldto="' . $field['fieldto'] . '" AND ctable_' . $key . '.fieldid=' . $field['id']);
-// }
 foreach ($custom_fields as $key => $field) {
-    // Only load fields that are:
-    //  - marked "show_on_table", OR
-    //  - specifically the Nationality field (slug = leads_nationality)
-    if ($field['show_on_table'] != 1 && $field['slug'] !== 'leads_nationality') {
-        continue;
-    }
-
-    $selectAs = is_cf_date($field) ? 'date_picker_cvalue_' . $key : 'cvalue_' . $key;
-
-    // register for later output
-    $customFieldsColumns[] = $selectAs;
-
-    // SQL select & join
-    $aColumns[] = 'ctable_' . $key . '.value as ' . $selectAs;
-    $join[]     = 'LEFT JOIN ' . db_prefix() . 'customfieldsvalues as ctable_' . $key .
-                  ' ON ' . db_prefix() . 'leads.id = ctable_' . $key . '.relid' .
-                  ' AND ctable_' . $key . '.fieldto="' . $field['fieldto'] . '"' .
-                  ' AND ctable_' . $key . '.fieldid=' . $field['id'];
-
-    if ($field['slug'] === 'leads_nationality') {
-        $nationalityAlias = $selectAs;
-    }
+    $selectAs = (is_cf_date($field) ? 'date_picker_cvalue_' . $key : 'cvalue_' . $key);
+    array_push($customFieldsColumns, $selectAs);
+    array_push($aColumns, 'ctable_' . $key . '.value as ' . $selectAs);
+    array_push($join, 'LEFT JOIN ' . db_prefix() . 'customfieldsvalues as ctable_' . $key . ' ON ' . db_prefix() . 'leads.id = ctable_' . $key . '.relid AND ctable_' . $key . '.fieldto="' . $field['fieldto'] . '" AND ctable_' . $key . '.fieldid=' . $field['id']);
 }
-
 
 $where  = [];
 $filter = false;
@@ -383,15 +353,6 @@ $row[] = $feDateCell;
     $row[] = $aRow['source_name'];
     $row[] = $aRow['service_name'];
     $row[] = $aRow['language_name'];
-
-// Nationality column
-$nationalityValue = '';
-if ($nationalityAlias !== null && isset($aRow[$nationalityAlias])) {
-    $nationalityValue = $aRow[$nationalityAlias];
-}
-$row[] = $nationalityValue;
-
-
     $row[] = $aRow['whatsapp_number'];
 
     $row[] = ($aRow['dateassigned'] == '0000-00-00 00:00:00' || !is_date($aRow['dateassigned']) ? '' : '<span data-toggle="tooltip" data-title="' . _dt($aRow['dateassigned']) . '" class="text-has-action is-date">' . time_ago($aRow['dateassigned']) . '</span>');
@@ -401,23 +362,9 @@ $row[] = $nationalityValue;
     $row[] = '<span data-toggle="tooltip" data-title="' . _dt($aRow['dateadded']) . '" class="text-has-action is-date">' . time_ago($aRow['dateadded']) . '</span>';
 
     // Custom fields add values
-    // foreach ($customFieldsColumns as $customFieldColumn) {
-    //     $row[] = (strpos($customFieldColumn, 'date_picker_') !== false ? _d($aRow[$customFieldColumn]) : $aRow[$customFieldColumn]);
-    // }
-foreach ($customFieldsColumns as $customFieldColumn) {
-    // We already output Nationality above – don’t add it again at the end
-    if ($nationalityAlias !== null && $customFieldColumn === $nationalityAlias) {
-        continue;
+    foreach ($customFieldsColumns as $customFieldColumn) {
+        $row[] = (strpos($customFieldColumn, 'date_picker_') !== false ? _d($aRow[$customFieldColumn]) : $aRow[$customFieldColumn]);
     }
-
-    $row[] = (strpos($customFieldColumn, 'date_picker_') !== false
-        ? _d($aRow[$customFieldColumn])
-        : $aRow[$customFieldColumn]);
-}
-
-
-
-
     // $row[] = nl2br($aRow['lead_notes'] ?? '');
 
 
