@@ -11,56 +11,50 @@ class Contract_webapp_model extends App_Model
     {
         parent::__construct();
 
-        // Connect to SECOND DB: "contracts_db" from application/config/database.php
+        // SECOND DB: "contracts_db" from application/config/database.php
         $this->contracts_db = $this->load->database('contracts_db', true);
     }
 
-    /**
-     * Agents dropdown – DISTINCT agent_id from tblcontract_applications
-     */
-  public function get_agents()
-{
-    // Step 1: Get distinct agent IDs from contracts DB
-    $agent_ids = $this->contracts_db
-        ->select('DISTINCT(agent_id) AS agent_id', false)
-        ->from('tblcontract_applications')
-        ->where('agent_id IS NOT NULL', null, false)
-        ->get()
-        ->result();
+    /* -------------------------------------------------------------
+     *   DROPDOWNS
+     * ---------------------------------------------------------- */
 
-    if (empty($agent_ids)) {
-        return [];
+    // All agents from main CRM DB (u619291874_quickplus_crm.tblstaff)
+    public function get_agents()
+    {
+        return $this->db
+            ->select('staffid AS agent_id, CONCAT(firstname, " ", lastname) AS agent_name')
+            ->from('tblstaff')
+            ->where('active', 1) // only active staff
+            ->order_by('firstname', 'ASC')
+            ->get()
+            ->result();
     }
 
-    // Convert IDs to array
-    $ids = array_map(fn($r) => $r->agent_id, $agent_ids);
+    // Map staffid => name to avoid N queries
+    public function get_agents_map()
+    {
+        $rows = $this->get_agents();
+        $map  = [];
+        foreach ($rows as $r) {
+            $map[$r->agent_id] = $r->agent_name;
+        }
+        return $map;
+    }
 
-    // Step 2: Use MAIN Perfex DB to get staff names
-    return $this->db
-        ->select('staffid as agent_id, CONCAT(firstname, " ", lastname) as agent_name')
-        ->from('tblstaff')
-        ->where_in('staffid', $ids)
-        ->order_by('firstname', 'ASC')
-        ->get()
-        ->result();
-}
+    // Services for dropdown (contracts DB)
+    public function get_services()
+    {
+        return $this->contracts_db
+            ->select('id, name')
+            ->from('tblleads_services')
+            ->order_by('name', 'ASC')
+            ->get()
+            ->result();
+    }
 
-
-    /**
-     * Services dropdown – DISTINCT service_type from tblcontract_applications
-     * We alias service_type as "id" so the view code can still use $srv->id
-     */
- public function get_services()
-{
-    // Services come from contracts DB, table: tblleads_services (id, name)
-    return $this->contracts_db
-        ->select('id, name')
-        ->from('tblleads_services')
-        ->order_by('name', 'ASC')
-        ->get()
-        ->result();
-}
- public function get_services_map()
+    // Map service id => name
+    public function get_services_map()
     {
         $rows = $this->contracts_db
             ->select('id, name')
@@ -72,17 +66,40 @@ class Contract_webapp_model extends App_Model
         foreach ($rows as $row) {
             $map[$row->id] = $row->name;
         }
-
         return $map;
     }
 
-   // MAIN FUNCTION: fetch contracts with filters
+    /* -------------------------------------------------------------
+     *   MAIN QUERY
+     * ---------------------------------------------------------- */
+
+    // Helper: convert datepicker (24-08-2025) to SQL (2025-08-24)
+    private function normalize_date($date)
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        $date = str_replace('/', '-', trim($date));
+        $ts   = strtotime($date);
+
+        if (!$ts) {
+            return null;
+        }
+
+        return date('Y-m-d', $ts);
+    }
+
+    // Fetch contracts with filters
     public function get_filtered_contracts($filters)
     {
         $db = $this->contracts_db;
 
         $db->from('tblcontract_applications');
+
+        // show only not-deleted
         $db->where('deleted_status', 0);
+
         // Agent filter
         if (!empty($filters['agent_id'])) {
             $db->where('agent_id', $filters['agent_id']);
@@ -94,7 +111,9 @@ class Contract_webapp_model extends App_Model
         }
 
         // Period filter
-        switch ($filters['period']) {
+        $period = isset($filters['period']) ? $filters['period'] : 'all';
+
+        switch ($period) {
             case 'today':
                 $db->where('DATE(created_at)', date('Y-m-d'));
                 break;
@@ -125,32 +144,45 @@ class Contract_webapp_model extends App_Model
                 $db->where('YEAR(created_at)', date('Y') - 1);
                 break;
 
-            // Custom range
-            case 'period':
-                if (!empty($filters['date_from'])) {
-                    $db->where('DATE(created_at) >=', $filters['date_from']);
+            case 'period': // custom period from datepickers
+                $from = $this->normalize_date($filters['date_from'] ?? '');
+                $to   = $this->normalize_date($filters['date_to'] ?? '');
+
+                if ($from) {
+                    $db->where('DATE(created_at) >=', $from);
                 }
-                if (!empty($filters['date_to'])) {
-                    $db->where('DATE(created_at) <=', $filters['date_to']);
+                if ($to) {
+                    $db->where('DATE(created_at) <=', $to);
                 }
+                break;
+
+            case 'all':
+            default:
+                // no extra where
                 break;
         }
 
+        // newest contracts first
+        $db->order_by('created_at', 'DESC');
+
         return $db->get()->result();
     }
+
+    /* -------------------------------------------------------------
+     *   Single agent helper (not strictly needed now,
+     *   but you can keep if used elsewhere)
+     * ---------------------------------------------------------- */
     public function get_agent_name($agent_id)
-{
-    if (!$agent_id) return '';
+    {
+        if (!$agent_id) return '';
 
-    $q = $this->db
-        ->select('CONCAT(firstname, " ", lastname) AS name')
-        ->from('tblstaff')
-        ->where('staffid', $agent_id)
-        ->get()
-        ->row();
+        $q = $this->db
+            ->select('CONCAT(firstname, " ", lastname) AS name')
+            ->from('tblstaff')
+            ->where('staffid', $agent_id)
+            ->get()
+            ->row();
 
-    return $q ? $q->name : $agent_id;
+        return $q ? $q->name : $agent_id;
+    }
 }
-
-}
-

@@ -6,7 +6,7 @@ $CI = &get_instance();
 
 // Use second DB for this table
 $contracts_db = $CI->load->database('contracts_db', true);
-$CI->db       = $contracts_db; // use contracts DB for this request
+$CI->db = $contracts_db; // use contracts DB for this request
 
 $CI->load->model('contract_webapp_model');
 
@@ -55,7 +55,7 @@ $rResult = $result['rResult'];
 
 $serviceName = isset($serviceMap[$aRow['service_type']])
     ? $serviceMap[$aRow['service_type']]
-    : $aRow['servi  ce_type']; // fallback to ID if somehow missing
+    : $aRow['service_type']; // fallback to ID if somehow missing
 
 
 
@@ -66,7 +66,7 @@ foreach ($rResult as $aRow) {
     $row[] = $aRow['full_name'];        // Customer
     $row[] = $serviceName; // Service (numeric code for now)
     $row[] = $aRow['total_amount'];     // Total Amount
-    $row[] = _dt($aRow['created_at']);  // Date
+    $row[] = _d($aRow['created_at']);  // Date
 
     $output['aaData'][] = $row;
 }

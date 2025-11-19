@@ -11,14 +11,12 @@
                         <div class="row mbot20">
                             <div class="col-md-6">
                                 <h4 class="no-margin">Contract Webapp Dashboard</h4>
-                                <p class="text-muted mtop5">
-                                    Applications from contracts DB (tblcontract_applications).
-                                </p>
                             </div>
                         </div>
 
                         <!-- Filters -->
                         <div class="row mbot15">
+
                             <!-- Agent -->
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -26,14 +24,14 @@
                                     <select id="filter_agent"
                                             name="agent_id"
                                             class="selectpicker"
+                                            data-live-search="true"
                                             data-width="100%"
                                             data-none-selected-text="All Agents">
                                         <option value=""></option>
                                         <?php foreach ($agents as $ag) : ?>
-                                           <option value="<?php echo $ag->agent_id; ?>">
-                                                    <?php echo $ag->agent_name; ?>
-                                                </option>
-
+                                            <option value="<?php echo $ag->agent_id; ?>">
+                                                <?php echo $ag->agent_name; ?>
+                                            </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
@@ -43,19 +41,19 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="filter_service">Service</label>
-                                <select id="filter_service"
-                                    name="service_type"
-                                    class="selectpicker"
-                                    data-width="100%"
-                                    data-none-selected-text="All Services">
-                                <option value=""></option>
-                                <?php foreach ($services as $srv): ?>
-                                    <option value="<?php echo html_escape($srv->id); ?>">
-                                        <?php echo html_escape($srv->name); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-
+                                    <select id="filter_service"
+                                            name="service_type"
+                                            class="selectpicker"
+                                            data-live-search="true"
+                                            data-width="100%"
+                                            data-none-selected-text="All Services">
+                                        <option value=""></option>
+                                        <?php foreach ($services as $srv): ?>
+                                            <option value="<?php echo html_escape($srv->id); ?>">
+                                                <?php echo html_escape($srv->name); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                             </div>
 
@@ -67,8 +65,8 @@
                                             name="period"
                                             class="selectpicker"
                                             data-width="100%">
-                                        <option value="today">Today</option>
                                         <option value="all">All</option>
+                                        <option value="today">Today</option>
                                         <option value="this_week">This Week</option>
                                         <option value="last_week">Last Week</option>
                                         <option value="this_month" selected>This Month</option>
@@ -124,16 +122,15 @@
                             <div class="col-md-12">
                                 <div class="table-responsive">
                                     <?php
-                                $table_data = [
-                                    'ID',
-                                    'Agent',
-                                    'Customer',
-                                    'Service',
-                                    'Total Amount',
-                                    'Date',
-                                ];
-                                render_datatable($table_data, 'contract_webapp_report');
-
+                                    $table_data = [
+                                        'ID',
+                                        'Agent',
+                                        'Customer',
+                                        'Service',
+                                        'Total Amount',
+                                        'Date',
+                                    ];
+                                    render_datatable($table_data, 'contract_webapp_report');
                                     ?>
                                 </div>
                             </div>
@@ -167,38 +164,38 @@ $(function () {
 
     toggleDateRange();
 
-var ContractsServerParams = {
-    agent_id:     '[name="agent_id"]',
-    service_type: '[name="service_type"]',
-    period:       '[name="period"]',
-    date_from:    '[name="date_from"]',
-    date_to:      '[name="date_to"]',
-};
+    var ContractsServerParams = {
+        agent_id:     '[name="agent_id"]',
+        service_type: '[name="service_type"]',
+        period:       '[name="period"]',
+        date_from:    '[name="date_from"]',
+        date_to:      '[name="date_to"]',
+    };
 
-var tableContracts = initDataTable(
-    '.table-contract_webapp_report',
-    admin_url + 'contract_webapp/table',
-    [],
-    [],
-    ContractsServerParams
-);
+    var tableContracts = initDataTable(
+        '.table-contract_webapp_report',
+        admin_url + 'contract_webapp/table',
+        [[5, 'desc']], // Date column, newest first
+        [],
+        ContractsServerParams
+    );
 
-$('#filter_agent, #filter_service')
-    .on('change changed.bs.select', function () {
-        tableContracts.ajax.reload();
+    $('#filter_agent, #filter_service')
+        .on('change changed.bs.select', function () {
+            tableContracts.ajax.reload();
+        });
+
+    $('#filter_period')
+        .on('change changed.bs.select', function () {
+            toggleDateRange();
+            tableContracts.ajax.reload();
+        });
+
+    $('#date_from, #date_to').on('change', function () {
+        if ($('#filter_period').val() === 'period') {
+            tableContracts.ajax.reload();
+        }
     });
-
-$('#filter_period')
-    .on('change changed.bs.select', function () {
-        toggleDateRange();
-        tableContracts.ajax.reload();
-    });
-
-$('#date_from, #date_to').on('change', function () {
-    if ($('#filter_period').val() === 'period') {
-        tableContracts.ajax.reload();
-    }
-});
 
 });
 </script>
