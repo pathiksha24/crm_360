@@ -15,6 +15,13 @@ function app_init_admin_sidebar_menu_items()
     ]);
 
     if (is_admin()) {
+    $CI->app_menu->add_sidebar_menu_item('contract-webapp-dashboard', [
+        'name'     => _l('contract_webapp_dashboard'), 
+        'href'     => admin_url('contract_webapp'), 
+        'position' => 2.00, 
+        'icon'     => 'fa-solid fa-file-contract', 
+        'badge'    => [],
+    ]);
     $CI->app_menu->add_sidebar_menu_item('custom-dashboard', [
     'name'     => _l('custom_dashboard'),
     'href'     => admin_url('custom_dashboard'),
@@ -25,16 +32,14 @@ function app_init_admin_sidebar_menu_items()
 
    
     $CI->app_menu->add_sidebar_menu_item('call-center-dashboard', [
-        'name'     => _l('call_center_lead_dashboard'), // Add this label to your language files
-        'href'     => admin_url('call_center_dashboard'), // This should point to your actual controller/method
+        'name'     => _l('call_center_lead_dashboard'), 
+        'href'     => admin_url('call_center_dashboard'), 
         'position' => 2.02,
-        'icon'     => 'fa-solid fa-headset', // Use any relevant FontAwesome icon
+        'icon'     => 'fa-solid fa-headset', 
         'badge'    => [],
     ]);
 
-}
-
-
+    }
     if (
         staff_can('view',  'customers')
         || (have_assigned_customers()
