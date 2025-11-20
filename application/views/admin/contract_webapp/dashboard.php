@@ -18,7 +18,27 @@
                         <div class="row mbot15">
 
                             <!-- Agent -->
-                            <div class="col-md-4">
+                                                        <!-- Team Leader -->
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="filter_team_leader">Team Leader</label>
+                                    <select id="filter_team_leader"
+                                            name="team_leader_id"
+                                            class="selectpicker"
+                                            data-live-search="true"
+                                            data-width="100%"
+                                            data-none-selected-text="All Team Leaders">
+                                        <option value=""></option>
+                                           <?php foreach ($team_leaders as $ag) : ?>
+                                            <option value="<?php echo $ag->agent_id; ?>">
+                                                <?php echo $ag->agent_name; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="filter_agent">Agent</label>
                                     <select id="filter_agent"
@@ -38,7 +58,7 @@
                             </div>
 
                             <!-- Service -->
-                      <div class="col-md-4">
+                      <div class="col-md-3">
                     <div class="form-group">
                         <label for="filter_service">Service</label>
                         <select id="filter_service"
@@ -60,7 +80,7 @@
 
 
                             <!-- Period -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="filter_period">Period</label>
                                     <select id="filter_period"
@@ -126,6 +146,7 @@
                                     <?php
                                     $table_data = [
                                         'ID',
+                                        'Team Leader',  
                                         'Agent',
                                         'Customer',
                                         'Service',
@@ -167,6 +188,7 @@ $(function () {
     toggleDateRange();
 
     var ContractsServerParams = {
+        team_leader_id: '[name="team_leader_id"]', 
         agent_id:     '[name="agent_id"]',
         service_type: '[name="service_type[]"]',
         period:       '[name="period"]',
@@ -181,8 +203,8 @@ $(function () {
         [],
         ContractsServerParams
     );
-
-    $('#filter_agent, #filter_service')
+   
+        $('#filter_team_leader, #filter_agent, #filter_service')
         .on('change changed.bs.select', function () {
             tableContracts.ajax.reload();
         });

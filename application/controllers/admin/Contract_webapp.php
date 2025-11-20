@@ -16,6 +16,7 @@ class Contract_webapp extends AdminController
 
         $data['agents']   = $this->contract_webapp_model->get_agents();
         $data['services'] = $this->contract_webapp_model->get_services();
+        $data['team_leaders'] = $this->contract_webapp_model->get_team_leader();
 
         $this->load->view('admin/contract_webapp/dashboard', $data);
     }
@@ -29,8 +30,9 @@ class Contract_webapp extends AdminController
             'period'       => $this->input->post('period'),
             'date_from'    => $this->input->post('date_from'),
             'date_to'      => $this->input->post('date_to'),
-        ];
+            'team_leader_id' => $this->input->post('team_leader_id'),
 
+        ];
         $rows       = $this->contract_webapp_model->get_filtered_contracts($filters);
         $serviceMap = $this->contract_webapp_model->get_services_map();
         $agentsMap  = $this->contract_webapp_model->get_agents_map();
@@ -42,29 +44,31 @@ class Contract_webapp extends AdminController
             'aaData'          => [],
         ];
 
-       foreach ($rows as $r) {
+        foreach ($rows as $r) {
+            $team_leader_id = $this->contract_webapp_model->get_team_leader_id($r->agent_id);
+            $teamLeaderName = $this->contract_webapp_model->get_team_leader_name($team_leader_id);
 
-    // Agent Name Fix: Blank if zero or not found
-    if (!empty($r->agent_id) && isset($agentsMap[$r->agent_id])) {
-        $agentName = $agentsMap[$r->agent_id];
-    } else {
-        $agentName = '';
-    }
+            if (!empty($r->agent_id) && isset($agentsMap[$r->agent_id])) {
+                $agentName = $agentsMap[$r->agent_id];
+            } else {
+                $agentName = '';
+            }
 
-    // Service Name
-    $serviceName = isset($serviceMap[$r->service_type])
-        ? $serviceMap[$r->service_type]
-        : '';
-     $date_only = date('d-m-Y', strtotime($r->created_at)); 
-    $output['aaData'][] = [
-        $r->id,
-        $agentName,
-        $r->full_name,
-        $serviceName,
-        $r->total_amount,
-        $date_only,   
-    ];
-}
+            // Service Name
+            $serviceName = isset($serviceMap[$r->service_type])
+                ? $serviceMap[$r->service_type]
+                : '';
+            $date_only = date('d-m-Y', strtotime($r->created_at));
+            $output['aaData'][] = [
+                $r->id,
+                $teamLeaderName,
+                $agentName,
+                $r->full_name,
+                $serviceName,
+                $r->total_amount,
+                $date_only,
+            ];
+        }
 
 
         echo json_encode($output);

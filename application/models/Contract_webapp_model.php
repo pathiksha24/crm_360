@@ -30,6 +30,16 @@ class Contract_webapp_model extends App_Model
             ->get()
             ->result();
     }
+    public function get_team_leader()
+    {
+        return $this->db
+            ->select('staffid AS agent_id, CONCAT(firstname, " ", lastname) AS agent_name')
+            ->from('tblstaff')
+            ->where('is_team_leader', 1)
+            ->order_by('firstname', 'ASC')
+            ->get()
+            ->result();
+    }
 
     // Map staffid => name to avoid N queries
     public function get_agents_map()
@@ -104,7 +114,7 @@ class Contract_webapp_model extends App_Model
         if (!empty($filters['agent_id'])) {
             $db->where('agent_id', $filters['agent_id']);
         }
-       
+
         // Service filter (multi-select)
         if (!empty($filters['service_type'])) {
             if (is_array($filters['service_type'])) {
@@ -113,8 +123,6 @@ class Contract_webapp_model extends App_Model
                 $db->where('service_type', $filters['service_type']);
             }
         }
-
-
         // Period filter
         $period = isset($filters['period']) ? $filters['period'] : 'all';
 
@@ -169,9 +177,23 @@ class Contract_webapp_model extends App_Model
 
         // newest contracts first
         $db->order_by('created_at', 'DESC');
+        $rows = $db->get()->result();
+        if (!empty($filters['team_leader_id'])) {
+            $filtered = [];
+            foreach ($rows as $row) {
+                $teamLeaderId = $this->get_team_leader_id($row->agent_id);
+                if ((string) $teamLeaderId === (string) $filters['team_leader_id']) {
+                    $filtered[] = $row;
+                }
+            }
 
-        return $db->get()->result();
+            return $filtered;
+        }
+
+        // no team leader filter → return all rows
+        return $rows;
     }
+
 
     /* -------------------------------------------------------------
      *   Single agent helper (not strictly needed now,
@@ -189,5 +211,34 @@ class Contract_webapp_model extends App_Model
             ->row();
 
         return $q ? $q->name : $agent_id;
+    }
+    // Get TEAM LEADER ID for a given agent
+    public function get_team_leader_id($agent_id)
+    {
+        if (!$agent_id) return null;
+
+        $row = $this->db
+            ->select('team_leader')
+            ->from('tblstaff')
+            ->where('staffid', $agent_id)
+            ->get()
+            ->row();
+
+        return $row ? $row->team_leader : null;
+    }
+
+    // Convert team leader id → name
+    public function get_team_leader_name($team_leader_id)
+    {
+        if (!$team_leader_id) return '';
+
+        $row = $this->db
+            ->select('CONCAT(firstname, " ", lastname) AS name')
+            ->from('tblstaff')
+            ->where('staffid', $team_leader_id)
+            ->get()
+            ->row();
+
+        return $row ? $row->name : '';
     }
 }
