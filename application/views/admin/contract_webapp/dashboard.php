@@ -38,24 +38,26 @@
                             </div>
 
                             <!-- Service -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="filter_service">Service</label>
-                                    <select id="filter_service"
-                                            name="service_type"
-                                            class="selectpicker"
-                                            data-live-search="true"
-                                            data-width="100%"
-                                            data-none-selected-text="All Services">
-                                        <option value=""></option>
-                                        <?php foreach ($services as $srv): ?>
-                                            <option value="<?php echo html_escape($srv->id); ?>">
-                                                <?php echo html_escape($srv->name); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
+                      <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="filter_service">Service</label>
+                        <select id="filter_service"
+                                name="service_type[]"
+                                class="selectpicker"
+                                multiple
+                                data-actions-box="true"
+                                data-live-search="true"
+                                data-width="100%"
+                                data-none-selected-text="All Services">
+                            <?php foreach ($services as $srv): ?>
+                                <option value="<?php echo html_escape($srv->id); ?>">
+                                    <?php echo html_escape($srv->name); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
 
                             <!-- Period -->
                             <div class="col-md-4">
@@ -166,7 +168,7 @@ $(function () {
 
     var ContractsServerParams = {
         agent_id:     '[name="agent_id"]',
-        service_type: '[name="service_type"]',
+        service_type: '[name="service_type[]"]',
         period:       '[name="period"]',
         date_from:    '[name="date_from"]',
         date_to:      '[name="date_to"]',

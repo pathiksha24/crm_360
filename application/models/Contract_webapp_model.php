@@ -104,11 +104,16 @@ class Contract_webapp_model extends App_Model
         if (!empty($filters['agent_id'])) {
             $db->where('agent_id', $filters['agent_id']);
         }
-
-        // Service filter
+       
+        // Service filter (multi-select)
         if (!empty($filters['service_type'])) {
-            $db->where('service_type', $filters['service_type']);
+            if (is_array($filters['service_type'])) {
+                $db->where_in('service_type', $filters['service_type']);
+            } else {
+                $db->where('service_type', $filters['service_type']);
+            }
         }
+
 
         // Period filter
         $period = isset($filters['period']) ? $filters['period'] : 'all';
