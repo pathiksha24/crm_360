@@ -227,7 +227,7 @@ function app_init_admin_sidebar_menu_items()
         ]);
     }
 
-    if (staff_can('view',  'knowledge_base')) {
+    // if (staff_can('view',  'knowledge_base')) {
         $CI->app_menu->add_sidebar_menu_item('knowledge-base', [
             'name'     => _l('als_kb'),
             'href'     => admin_url('knowledge_base'),
@@ -235,7 +235,7 @@ function app_init_admin_sidebar_menu_items()
             'position' => 50,
             'badge'    => [],
         ]);
-    }
+    // }
 
     // Utilities
     $CI->app_menu->add_sidebar_menu_item('utilities', [

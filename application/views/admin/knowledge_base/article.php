@@ -91,13 +91,13 @@ if (isset($article)) {
 </div>
 
                 </div>
-                <?php if ((staff_can('create', 'knowledge_base') && ! isset($article)) || staff_can('edit', 'knowledge_base') && isset($article)) { ?>
+                <!-- </?php if ((staff_can('create', 'knowledge_base') && ! isset($article)) || staff_can('edit', 'knowledge_base') && isset($article)) { ?> -->
                 <div class="panel-footer text-right">
                     <button type="submit" class="btn btn-primary">
                         <?= _l('submit'); ?>
                     </button>
                 </div>
-                <?php } ?>
+                <!-- </?php } ?> -->
             </div>
         </div>
 

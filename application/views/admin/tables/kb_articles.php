@@ -73,13 +73,13 @@ foreach ($rResult as $aRow) {
 
             $_data .= '<a href="' . $link . '" target="_blank">' . _l('view') . '</a>';
 
-            if (staff_can('edit', 'knowledge_base')) {
+            // if (staff_can('edit', 'knowledge_base')) {
                 $_data .= ' | <a href="' . admin_url('knowledge_base/article/' . $aRow['articleid']) . '">' . _l('edit') . '</a>';
-            }
+            // }
 
-            if (staff_can('delete', 'knowledge_base')) {
+            // if (staff_can('delete', 'knowledge_base')) {
                 $_data .= ' | <a href="' . admin_url('knowledge_base/delete_article/' . $aRow['articleid']) . '" class="_delete text-danger">' . _l('delete') . '</a>';
-            }
+            // }
 
             $_data .= '</div>';
         } elseif ($aColumns[$i] == 'datecreated') {

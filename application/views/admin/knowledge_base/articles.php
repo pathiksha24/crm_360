@@ -1,7 +1,11 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php init_head();
-$has_permission_edit   = staff_can('edit', 'knowledge_base');
-$has_permission_create = staff_can('create', 'knowledge_base');
+// $has_permission_edit   = staff_can('edit', 'knowledge_base');
+// $has_permission_create = staff_can('create', 'knowledge_base');
+
+$has_permission_edit   = true;
+$has_permission_create = true;
+
 ?>
 <div id="wrapper">
     <div class="content">
@@ -117,9 +121,9 @@ foreach ($groups as $group) {
                                                 </div>
                                                 <?php
                                          $this->db->select('*, (SELECT COUNT(*) FROM ' . db_prefix() . 'views_tracking WHERE rel_type="kb_article" AND rel_id=' . db_prefix() . 'knowledge_base.articleid) as total_views')->from(db_prefix() . 'knowledge_base')->where('articlegroup', $group['groupid'])->order_by('article_order', 'asc');
-    if (! $has_permission_create && ! $has_permission_edit) {
+    // if (! $has_permission_create && ! $has_permission_edit) {
         $this->db->where('active', 1);
-    }
+    // }
     $articles = $this->db->get()->result_array(); ?>
                                                 <div class="kan-ban-content-wrapper">
                                                     <div class="kan-ban-content">

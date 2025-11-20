@@ -53,10 +53,15 @@ class Knowledge_base_model extends App_Model
         $this->db->where('articlegroup', $article->articlegroup);
         $this->db->where('articleid !=', $current_id);
         $this->db->where('active', 1);
+        // can view all 
+        // if ($customers == true) {
+        //     $this->db->where('staff_article', 0);
+        // } else {
+        //     $this->db->where('staff_article', 1);
+        // }
+        // allow all staff to access internal articles
         if ($customers == true) {
-            $this->db->where('staff_article', 0);
-        } else {
-            $this->db->where('staff_article', 1);
+        $this->db->where_in('staff_article', [0,1]);
         }
         $this->db->limit($total_related_articles);
 

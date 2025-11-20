@@ -13,9 +13,9 @@ class Knowledge_base extends AdminController
     /* List all knowledgebase articles */
     public function index()
     {
-        if (staff_cant('view', 'knowledge_base')) {
-            access_denied('knowledge_base');
-        }
+        // if (staff_cant('view', 'knowledge_base')) {
+        //     access_denied('knowledge_base');
+        // }
         if ($this->input->is_ajax_request()) {
             $this->app->get_table_data('kb_articles');
         }
@@ -26,28 +26,65 @@ class Knowledge_base extends AdminController
     }
 
     /* Add new article or edit existing*/
-    public function article($id = '')
+    // public function article($id = '')
+    // {
+    //     if (staff_cant('view', 'knowledge_base')) {
+    //         access_denied('knowledge_base');
+    //     }
+    //     if ($this->input->post()) {
+    //         $data                = $this->input->post();
+    //         $data['description'] = html_purify($this->input->post('description', false));
+
+    //         if ($id == '') {
+    //             if (staff_cant('create', 'knowledge_base')) {
+    //                 access_denied('knowledge_base');
+    //             }
+    //             $id = $this->knowledge_base_model->add_article($data);
+    //             if ($id) {
+    //                 set_alert('success', _l('added_successfully', _l('kb_article')));
+    //                 redirect(admin_url('knowledge_base/article/' . $id));
+    //             }
+    //         } else {
+    //             if (staff_cant('edit', 'knowledge_base')) {
+    //                 access_denied('knowledge_base');
+    //             }
+    //             $success = $this->knowledge_base_model->update_article($data, $id);
+    //             if ($success) {
+    //                 set_alert('success', _l('updated_successfully', _l('kb_article')));
+    //             }
+    //             redirect(admin_url('knowledge_base/article/' . $id));
+    //         }
+    //     }
+    //     if ($id == '') {
+    //         $title = _l('add_new', _l('kb_article'));
+    //     } else {
+    //         $article         = $this->knowledge_base_model->get($id);
+    //         $data['article'] = $article;
+    //         $title           = _l('edit', _l('kb_article')) . ' ' . $article->subject;
+    //     }
+
+    //     $this->app_scripts->add('tinymce-stickytoolbar',site_url('assets/plugins/tinymce-stickytoolbar/stickytoolbar.js'));
+
+    //     $data['bodyclass'] = 'kb-article';
+    //     $data['title']     = $title;
+    //     $this->load->view('admin/knowledge_base/article', $data);
+    // }
+public function article($id = '')
     {
-        if (staff_cant('view', 'knowledge_base')) {
-            access_denied('knowledge_base');
-        }
+        
         if ($this->input->post()) {
             $data                = $this->input->post();
             $data['description'] = html_purify($this->input->post('description', false));
 
             if ($id == '') {
-                if (staff_cant('create', 'knowledge_base')) {
-                    access_denied('knowledge_base');
-                }
+                
                 $id = $this->knowledge_base_model->add_article($data);
                 if ($id) {
                     set_alert('success', _l('added_successfully', _l('kb_article')));
                     redirect(admin_url('knowledge_base/article/' . $id));
                 }
             } else {
-                if (staff_cant('edit', 'knowledge_base')) {
-                    access_denied('knowledge_base');
-                }
+               
                 $success = $this->knowledge_base_model->update_article($data, $id);
                 if ($success) {
                     set_alert('success', _l('updated_successfully', _l('kb_article')));
@@ -69,12 +106,11 @@ class Knowledge_base extends AdminController
         $data['title']     = $title;
         $this->load->view('admin/knowledge_base/article', $data);
     }
-
     public function view($slug)
     {
-        if (staff_cant('view', 'knowledge_base')) {
-            access_denied('View Knowledge Base Article');
-        }
+        // if (staff_cant('view', 'knowledge_base')) {
+        //     access_denied('View Knowledge Base Article');
+        // }
 
         $data['article'] = $this->knowledge_base_model->get(false, $slug);
 
@@ -110,7 +146,7 @@ class Knowledge_base extends AdminController
 
     public function update_kan_ban()
     {
-        if (staff_can('edit',  'knowledge_base')) {
+        // if (staff_can('edit',  'knowledge_base')) {
             if ($this->input->post()) {
                 $success = $this->knowledge_base_model->update_kan_ban($this->input->post());
                 $message = '';
@@ -123,7 +159,7 @@ class Knowledge_base extends AdminController
                 ]);
                 die();
             }
-        }
+        // }
     }
 
     public function change_group_color()
@@ -138,9 +174,9 @@ class Knowledge_base extends AdminController
     /* Delete article from database */
     public function delete_article($id)
     {
-        if (staff_cant('delete', 'knowledge_base')) {
-            access_denied('knowledge_base');
-        }
+        // if (staff_cant('delete', 'knowledge_base')) {
+        //     access_denied('knowledge_base');
+        // }
         if (!$id) {
             redirect(admin_url('knowledge_base'));
         }
@@ -156,9 +192,9 @@ class Knowledge_base extends AdminController
     /* View all article groups */
     public function manage_groups()
     {
-        if (staff_cant('view', 'knowledge_base')) {
-            access_denied('knowledge_base');
-        }
+        // if (staff_cant('view', 'knowledge_base')) {
+        //     access_denied('knowledge_base');
+        // }
         $data['groups'] = $this->knowledge_base_model->get_kbg();
         $data['title']  = _l('als_kb_groups');
         $this->load->view('admin/knowledge_base/manage_groups', $data);
@@ -228,9 +264,9 @@ class Knowledge_base extends AdminController
     /* Delete article group */
     public function delete_group($id)
     {
-        if (staff_cant('delete', 'knowledge_base')) {
-            access_denied('knowledge_base');
-        }
+        // if (staff_cant('delete', 'knowledge_base')) {
+        //     access_denied('knowledge_base');
+        // }
         if (!$id) {
             redirect(admin_url('knowledge_base/manage_groups'));
         }
@@ -253,9 +289,9 @@ class Knowledge_base extends AdminController
     }
 public function upload_image() // consider renaming to upload_file()
 {
-    if (staff_cant('edit', 'knowledge_base') && staff_cant('create', 'knowledge_base')) {
-        return $this->output->set_status_header(403)->set_output('Forbidden');
-    }
+    // if (staff_cant('edit', 'knowledge_base') && staff_cant('create', 'knowledge_base')) {
+    //     return $this->output->set_status_header(403)->set_output('Forbidden');
+    // }
 
     $dir = FCPATH . 'uploads/knowledge_base/';
     if (!is_dir($dir)) {
