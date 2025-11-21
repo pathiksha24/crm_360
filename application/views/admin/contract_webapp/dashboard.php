@@ -199,10 +199,17 @@ $(function () {
     var tableContracts = initDataTable(
         '.table-contract_webapp_report',
         admin_url + 'contract_webapp/table',
-        [[5, 'desc']], // Date column, newest first
+        [[5, 'desc']],
         [],
         ContractsServerParams
     );
+
+    // Disable server-side search AFTER table is loaded
+    tableContracts.on('xhr.dt', function () {
+        tableContracts.settings()[0].oFeatures.bServerSide = false;
+    });
+
+
    
         $('#filter_team_leader, #filter_agent, #filter_service')
         .on('change changed.bs.select', function () {
