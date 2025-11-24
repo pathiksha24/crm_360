@@ -15,13 +15,33 @@ function app_init_admin_sidebar_menu_items()
     ]);
 
     if (is_admin()) {
-    $CI->app_menu->add_sidebar_menu_item('contract-webapp-dashboard', [
-        'name'     => _l('contract_webapp_dashboard'), 
-        'href'     => admin_url('contract_webapp'), 
-        'position' => 2.00, 
-        'icon'     => 'fa-solid fa-file-contract', 
+    
+    $CI->app_menu->add_sidebar_menu_item('contract_webapp_parent', [
+        'collapse' => true,
+        'name'     => 'Contract Web App',
+        'position' => 2.00,
+        'icon'     => 'fa-solid fa-file-contract',
         'badge'    => [],
     ]);
+        // Contract WebApp Dashboard
+    $CI->app_menu->add_sidebar_children_item('contract_webapp_parent', [
+        'slug'     => 'contract_webapp_dashboard',
+        'name'     => 'Contract Dashboard',
+        'href'     => admin_url('contract_webapp'),
+        'position' => 1,
+    ]);
+
+    // Partial Contract Dashboard
+    $CI->app_menu->add_sidebar_children_item('contract_webapp_parent', [
+        'slug'     => 'partial_contract_dashboard',
+        'name'     => 'Partial Contract Dashboard',
+        'href'     => admin_url('partial_contract'),
+        'position' => 2,
+    ]);
+
+
+
+
     $CI->app_menu->add_sidebar_menu_item('custom-dashboard', [
     'name'     => _l('custom_dashboard'),
     'href'     => admin_url('custom_dashboard'),
